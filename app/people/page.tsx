@@ -69,7 +69,7 @@ export default function PeoplePage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow">The index</p>
-          <h1 className="font-display mt-1 text-4xl font-semibold tracking-tight text-ink">
+          <h1 className="font-display mt-2 text-4xl tracking-[-0.015em] text-ink">
             People
           </h1>
         </div>
@@ -107,7 +107,7 @@ export default function PeoplePage() {
             <button
               type="button"
               onClick={() => setLabel(null)}
-              className={`chip ${label === null ? "chip-clear" : ""}`}
+              className={`chip ${label === null ? "chip-on" : ""}`}
             >
               All
             </button>
@@ -116,7 +116,7 @@ export default function PeoplePage() {
                 key={item}
                 type="button"
                 onClick={() => setLabel(item === label ? null : item)}
-                className={`chip ${item === label ? "chip-clear" : ""}`}
+                className={`chip ${item === label ? "chip-on" : ""}`}
               >
                 {item}
               </button>

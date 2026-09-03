@@ -15,8 +15,8 @@ function byFollowUp(a: Contact, b: Contact) {
 export default function TodayPage() {
   const { contacts, ready, logContact } = useStore();
 
-  // Nothing is rendered from storage until it has been read, so the server
-  // markup and the first client render agree.
+  // Nothing renders from storage until it has been read, so the server markup
+  // and the first client render agree.
   if (!ready) return <div className="h-64" aria-hidden />;
 
   if (contacts.length === 0) {
@@ -30,113 +30,99 @@ export default function TodayPage() {
   }
 
   const due = contacts
-    .filter((contact) => contact.nextFollowUp && (daysUntil(contact.nextFollowUp) ?? 99) <= 7)
+    .filter((contact) => (daysUntil(contact.nextFollowUp) ?? 99) <= 7)
     .sort(byFollowUp);
 
-  const upcoming = contacts
-    .filter((contact) => {
-      const days = daysUntil(contact.nextFollowUp);
-      return days !== null && days > 7;
-    })
+  const later = contacts
+    .filter((contact) => (daysUntil(contact.nextFollowUp) ?? -1) > 7)
     .sort(byFollowUp)
-    .slice(0, 4);
+    .slice(0, 5);
 
-  const favorites = contacts.filter((contact) => contact.favorite);
   const overdueCount = due.filter((contact) => isOverdue(contact.nextFollowUp)).length;
 
   return (
     <div className="space-y-14">
       <section>
         <p className="eyebrow">
-          {new Date().toLocaleDateString(undefined, {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-          })}
+          <time>
+            {new Date().toLocaleDateString(undefined, {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+            })}
+          </time>
         </p>
-        <h1 className="font-display mt-2 max-w-2xl text-4xl font-semibold leading-[1.1] tracking-tight text-ink sm:text-5xl">
+        <h1 className="font-display mt-3 max-w-2xl text-[2.6rem] leading-[1.08] tracking-[-0.015em] text-ink sm:text-[3.25rem]">
           {due.length === 0 ? (
-            "Nothing needs chasing today."
+            <>No one is waiting on you today.</>
+          ) : overdueCount > 0 ? (
+            <>
+              You are{" "}
+              <em className="not-italic text-signal-deep">
+                {overdueCount} {overdueCount === 1 ? "reply" : "replies"} behind
+              </em>
+              .
+            </>
           ) : (
             <>
               {due.length} {due.length === 1 ? "person" : "people"} to reach out to
-              {overdueCount > 0 ? (
-                <span className="text-coral">
-                  , {overdueCount} overdue
-                </span>
-              ) : null}
-              .
+              this week.
             </>
           )}
         </h1>
-
-        <dl className="mt-8 flex flex-wrap gap-x-10 gap-y-4">
-          {[
-            { label: "Contacts", value: contacts.length },
-            { label: "Favourites", value: favorites.length },
-            { label: "Scheduled", value: contacts.filter((c) => c.nextFollowUp).length },
-          ].map((stat) => (
-            <div key={stat.label}>
-              <dt className="eyebrow">{stat.label}</dt>
-              <dd className="font-display text-3xl font-semibold text-ink">{stat.value}</dd>
-            </div>
-          ))}
-        </dl>
       </section>
 
       {due.length > 0 ? (
         <section>
           <h2 className="eyebrow mb-4">Due now</h2>
           <ul className="space-y-3">
-            {due.map((contact, index) => (
-              <li
-                key={contact.id}
-                className="rise flex flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border border-rule bg-white/70 p-4"
-                style={{ animationDelay: `${index * 40}ms` }}
-              >
-                <Plate contact={contact} />
-                {/* On narrow screens this fills the rest of row one, pushing the
-                    chip and button onto their own row instead of crowding the name. */}
-                <div className="min-w-0 flex-1 basis-[calc(100%-3.75rem)] sm:basis-0">
-                  <Link
-                    href={`/people/${contact.id}`}
-                    className="font-display text-lg font-semibold text-ink hover:text-coral-deep"
-                  >
-                    {contact.name}
-                  </Link>
-                  <p className="truncate text-sm text-ink-soft">
-                    {contact.notes || "No notes yet."}
-                  </p>
-                </div>
-                <div className="ml-auto flex items-center gap-3">
-                  <span className={`chip ${isOverdue(contact.nextFollowUp) ? "chip-due" : ""}`}>
-                    {formatRelativeDay(contact.nextFollowUp)}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => logContact(contact.id)}
-                    className="btn btn-quiet"
-                  >
-                    Mark contacted
-                  </button>
-                </div>
-              </li>
-            ))}
+            {due.map((contact, index) => {
+              const overdue = isOverdue(contact.nextFollowUp);
+              return (
+                <li
+                  key={contact.id}
+                  className={`settle flex flex-wrap items-center gap-x-4 gap-y-3 rounded-lg border bg-card p-4 ${
+                    overdue ? "border-signal/40" : "border-rule"
+                  }`}
+                  style={{ animationDelay: `${index * 45}ms` }}
+                >
+                  <Plate contact={contact} />
+                  {/* Fills the rest of row one on narrow screens, so the chip
+                      and button wrap below rather than crowding the name. */}
+                  <div className="min-w-0 flex-1 basis-[calc(100%-3.75rem)] sm:basis-0">
+                    <Link
+                      href={`/people/${contact.id}`}
+                      className="font-display text-lg text-ink hover:underline"
+                    >
+                      {contact.name}
+                    </Link>
+                    <p className="truncate text-sm text-muted">
+                      {contact.notes || "No notes yet."}
+                    </p>
+                  </div>
+                  <div className="ml-auto flex items-center gap-3">
+                    <span className={`chip ${overdue ? "chip-overdue" : ""}`}>
+                      {formatRelativeDay(contact.nextFollowUp)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => logContact(contact.id)}
+                      className="btn btn-quiet"
+                    >
+                      Mark contacted
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </section>
       ) : null}
 
-      {upcoming.length > 0 ? (
+      {later.length > 0 ? (
         <section>
-          <h2 className="eyebrow mb-4">Later</h2>
-          <ContactList contacts={upcoming} />
-        </section>
-      ) : null}
-
-      {favorites.length > 0 ? (
-        <section>
-          <h2 className="eyebrow mb-4">Favourites</h2>
-          <ContactList contacts={favorites} />
+          <h2 className="eyebrow mb-4">Coming up</h2>
+          <ContactList contacts={later} />
         </section>
       ) : null}
     </div>

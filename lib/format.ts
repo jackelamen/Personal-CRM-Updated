@@ -72,15 +72,3 @@ export function getInitials(contact: Pick<Contact, "name" | "firstName" | "lastN
     .slice(0, 2);
   return (fromParts || contact.name.slice(0, 2)).toUpperCase();
 }
-
-/** Deterministic accent per contact, so a person keeps the same colour across views. */
-const PLATE_TONES = ["coral", "teal", "plum", "navy"] as const;
-export type PlateTone = (typeof PLATE_TONES)[number];
-
-export function plateTone(id: string): PlateTone {
-  let hash = 0;
-  for (let i = 0; i < id.length; i += 1) {
-    hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
-  }
-  return PLATE_TONES[hash % PLATE_TONES.length];
-}

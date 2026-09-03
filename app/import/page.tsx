@@ -83,10 +83,10 @@ export default function ImportPage() {
     <div className="mx-auto max-w-2xl space-y-12">
       <div>
         <p className="eyebrow">Bring people in</p>
-        <h1 className="font-display mt-1 text-4xl font-semibold tracking-tight text-ink">
+        <h1 className="font-display mt-2 text-4xl tracking-[-0.015em] text-ink">
           Import &amp; data
         </h1>
-        <p className="mt-3 text-[0.95rem] leading-relaxed text-ink-soft">
+        <p className="mt-3 text-[0.95rem] leading-relaxed text-muted">
           Export your contacts from Google Contacts as a CSV or vCard, then drop the
           file in below. Anyone whose email or phone already appears in your list is
           skipped, so importing twice is safe.
@@ -98,8 +98,8 @@ export default function ImportPage() {
           role="status"
           className={`rounded-lg border px-4 py-3 text-sm font-semibold ${
             status.kind === "ok"
-              ? "border-teal bg-teal-wash text-[#2f6b5f]"
-              : "border-coral bg-coral-wash text-coral-deep"
+              ? "border-rule bg-sunk text-ink"
+              : "border-signal bg-signal-wash text-signal-deep"
           }`}
         >
           {status.message}
@@ -144,7 +144,7 @@ export default function ImportPage() {
 
       <section className="rule space-y-4 pt-8">
         <h2 className="eyebrow">Backup</h2>
-        <p className="text-sm leading-relaxed text-ink-soft">
+        <p className="text-sm leading-relaxed text-muted">
           Your contacts live in this browser only. Download a backup to keep a copy or
           move your list to another device.
         </p>

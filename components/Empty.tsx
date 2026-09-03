@@ -10,9 +10,9 @@ export default function Empty({
   action?: { href: string; label: string };
 }) {
   return (
-    <div className="rounded-xl border border-dashed border-rule-strong bg-paper-2/50 px-6 py-14 text-center">
-      <p className="font-display text-xl font-semibold text-ink">{title}</p>
-      <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-ink-soft">
+    <div className="rounded-lg border border-dashed border-rule-strong bg-sunk/60 px-6 py-14 text-center">
+      <p className="font-display text-xl text-ink">{title}</p>
+      <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted">
         {body}
       </p>
       {action ? (

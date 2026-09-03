@@ -17,7 +17,7 @@ export default function EditContactPage() {
   if (!contact) {
     return (
       <div className="py-16 text-center">
-        <p className="font-display text-2xl font-semibold text-ink">Contact not found</p>
+        <p className="font-display text-2xl text-ink">Contact not found</p>
         <Link href="/people" className="btn btn-quiet mt-6">
           Back to people
         </Link>
@@ -29,7 +29,7 @@ export default function EditContactPage() {
     <div className="mx-auto max-w-2xl space-y-8">
       <div>
         <p className="eyebrow">Editing</p>
-        <h1 className="font-display mt-1 text-4xl font-semibold tracking-tight text-ink">
+        <h1 className="font-display mt-2 text-4xl tracking-[-0.015em] text-ink">
           {contact.name}
         </h1>
       </div>

@@ -12,7 +12,7 @@ export default function NewContactPage() {
     <div className="mx-auto max-w-2xl space-y-8">
       <div>
         <p className="eyebrow">New entry</p>
-        <h1 className="font-display mt-1 text-4xl font-semibold tracking-tight text-ink">
+        <h1 className="font-display mt-2 text-4xl tracking-[-0.015em] text-ink">
           Add a contact
         </h1>
       </div>

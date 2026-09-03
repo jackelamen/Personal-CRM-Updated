@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import Plate from "@/components/Plate";
+import Star from "@/components/Star";
 import { formatDate, formatRelativeDay, isOverdue } from "@/lib/format";
 import { useStore } from "@/lib/store";
 
@@ -20,8 +21,8 @@ export default function ContactDetailPage() {
   if (!contact) {
     return (
       <div className="py-16 text-center">
-        <p className="font-display text-2xl font-semibold text-ink">Contact not found</p>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="font-display text-2xl text-ink">Contact not found</p>
+        <p className="mt-2 text-sm text-muted">
           It may have been deleted from this browser.
         </p>
         <Link href="/people" className="btn btn-quiet mt-6">
@@ -42,18 +43,18 @@ export default function ContactDetailPage() {
 
   return (
     <article className="space-y-10">
-      <Link href="/people" className="eyebrow hover:text-coral">
+      <Link href="/people" className="eyebrow inline-block hover:underline">
         ← People
       </Link>
 
       <header className="flex flex-wrap items-start gap-5">
         <Plate contact={contact} size="lg" />
         <div className="min-w-0 flex-1">
-          <h1 className="font-display text-4xl font-semibold leading-tight tracking-tight text-ink">
+          <h1 className="font-display text-4xl leading-tight tracking-[-0.015em] text-ink">
             {contact.name}
           </h1>
           {contact.role || contact.company ? (
-            <p className="mt-1 text-ink-soft">
+            <p className="mt-1 text-muted">
               {[contact.role, contact.company].filter(Boolean).join(" · ")}
             </p>
           ) : null}
@@ -76,9 +77,11 @@ export default function ContactDetailPage() {
         <button
           type="button"
           onClick={() => toggleFavorite(contact.id)}
-          className="btn btn-quiet"
+          aria-pressed={Boolean(contact.favorite)}
+          className={`btn ${contact.favorite ? "btn-primary" : "btn-quiet"}`}
         >
-          {contact.favorite ? "● Favourite" : "○ Add to favourites"}
+          <Star filled={Boolean(contact.favorite)} />
+          {contact.favorite ? "Favourite" : "Add to favourites"}
         </button>
         <Link href={`/people/${contact.id}/edit`} className="btn btn-quiet">
           Edit
@@ -87,16 +90,16 @@ export default function ContactDetailPage() {
 
       {contact.nextFollowUp ? (
         <div
-          className={`rounded-xl border p-5 ${
+          className={`rounded-lg border p-5 ${
             isOverdue(contact.nextFollowUp)
-              ? "border-coral bg-coral-wash"
-              : "border-rule bg-teal-wash"
+              ? "border-signal bg-signal-wash"
+              : "border-rule bg-card"
           }`}
         >
           <p className="eyebrow">Next follow-up</p>
-          <p className="font-display mt-1 text-2xl font-semibold text-ink">
+          <p className="font-display mt-1 text-2xl text-ink">
             {formatRelativeDay(contact.nextFollowUp)}
-            <span className="ml-2 text-base font-normal text-ink-soft">
+            <span className="ml-2 text-base font-normal text-muted">
               {formatDate(contact.nextFollowUp)}
             </span>
           </p>
@@ -112,7 +115,7 @@ export default function ContactDetailPage() {
                 <dt className="eyebrow">{item.label}</dt>
                 <dd className="mt-1 break-words text-[0.95rem] text-ink">
                   {item.href ? (
-                    <a href={item.href} className="hover:text-coral hover:underline">
+                    <a href={item.href} className="hover:underline hover:underline">
                       {item.value}
                     </a>
                   ) : (
@@ -127,13 +130,13 @@ export default function ContactDetailPage() {
 
       <section>
         <h2 className="eyebrow mb-3">Notes</h2>
-        <div className="rounded-xl border border-rule bg-white/70 p-5">
+        <div className="rounded-lg border border-rule bg-card p-5">
           {contact.notes ? (
             <p className="whitespace-pre-wrap text-[0.95rem] leading-relaxed text-ink">
               {contact.notes}
             </p>
           ) : (
-            <p className="text-sm text-ink-faint">
+            <p className="text-sm text-faint">
               Nothing written down yet. Use Edit to add what you want to remember.
             </p>
           )}

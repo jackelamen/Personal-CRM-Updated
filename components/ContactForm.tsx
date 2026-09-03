@@ -101,7 +101,7 @@ export default function ContactForm({
           className="field mt-1.5 font-display text-lg"
         />
       </label>
-      {error ? <p className="text-sm font-semibold text-coral-deep">{error}</p> : null}
+      {error ? <p className="text-sm font-semibold text-signal-deep">{error}</p> : null}
 
       <div className="grid gap-5 sm:grid-cols-2">
         {text("company", "Company", "text", "Northstar Studio")}

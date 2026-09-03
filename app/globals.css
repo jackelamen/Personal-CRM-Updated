@@ -1,36 +1,30 @@
 @import "tailwindcss";
 
+/*
+  Palette: one dominant ink, one reserved signal.
+  Deep navy carries all structure. Crimson is used for exactly one thing —
+  a person you are overdue to contact — so the eye learns that red on this
+  screen always means "this one is slipping". Everything else is neutral.
+*/
 @theme {
-  /* Paper-stock neutrals */
-  --color-paper: #fbfaf7;
-  --color-paper-2: #f3f1eb;
-  --color-paper-3: #eeeae1;
-  --color-rule: #e2ded4;
-  --color-rule-strong: #cec8ba;
+  --color-paper: #edf0f2;
+  --color-card: #ffffff;
+  --color-sunk: #e3e8ec;
 
-  /* Ink */
-  --color-ink: #1c2b35;
-  --color-ink-soft: #56646d;
-  --color-ink-faint: #8a949b;
+  --color-ink: #101c2b;
+  --color-muted: #55636f;
+  --color-faint: #79858f;
 
-  /* Accents */
-  --color-coral: #d85c4c;
-  --color-coral-deep: #b5453d;
-  --color-coral-wash: #f8e4df;
-  --color-teal: #4b9b8c;
-  --color-teal-wash: #e3f0ec;
-  --color-plum: #8c6f87;
-  --color-navy: #1c2b35;
+  --color-rule: #d5dce2;
+  --color-rule-strong: #bcc7d0;
 
-  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  /* Signal. Reserved for overdue follow-ups. Not decorative. */
+  --color-signal: #c2304b;
+  --color-signal-deep: #a52440;
+  --color-signal-wash: #fbe6ea;
+
+  --font-display: var(--font-newsreader), Georgia, serif;
   --font-sans: var(--font-karla), ui-sans-serif, system-ui, sans-serif;
-
-  --radius-plate: 10px;
-}
-
-/* Fraunces is a variable font; dial in a warmer, softer cut. */
-.font-display {
-  font-variation-settings: "SOFT" 30, "WONK" 1, "opsz" 40;
 }
 
 @layer base {
@@ -42,65 +36,67 @@
     background-color: var(--color-paper);
     color: var(--color-ink);
     font-family: var(--font-sans);
-    /* Faint paper grain. Inline so it costs no extra request. */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
   }
 
   ::selection {
-    background-color: var(--color-coral);
-    color: #fff;
+    background-color: var(--color-ink);
+    color: var(--color-paper);
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-coral);
+    outline: 2px solid var(--color-ink);
     outline-offset: 2px;
+  }
+
+  /* Dates and counts align in a column when set as tabular figures. */
+  time,
+  .tabular {
+    font-variant-numeric: tabular-nums;
   }
 }
 
 @layer components {
-  /* Small caps label used for section headers and metadata. */
   .eyebrow {
     font-size: 0.6875rem;
     font-weight: 700;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--color-ink-faint);
+    color: var(--color-muted);
   }
 
   .rule {
     border-top: 1px solid var(--color-rule);
   }
 
+  /* Monogram tile. Deliberately uniform: the plate identifies a person, it
+     does not encode anything, so it gets no colour of its own. */
   .plate {
     display: grid;
     place-items: center;
-    border-radius: var(--radius-plate);
+    border-radius: 8px;
+    background-color: var(--color-ink);
+    color: var(--color-paper);
     font-family: var(--font-display);
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: 0.02em;
-    color: #fff;
     flex-shrink: 0;
   }
-  .plate-coral { background-color: var(--color-coral); }
-  .plate-teal  { background-color: var(--color-teal); }
-  .plate-plum  { background-color: var(--color-plum); }
-  .plate-navy  { background-color: var(--color-navy); }
 
   .field {
     width: 100%;
-    background-color: #fff;
-    border: 1px solid var(--color-rule);
-    border-radius: 8px;
+    background-color: var(--color-card);
+    border: 1px solid var(--color-rule-strong);
+    border-radius: 6px;
     padding: 0.6rem 0.75rem;
     font-size: 0.9375rem;
     color: var(--color-ink);
     transition: border-color 120ms ease, box-shadow 120ms ease;
   }
-  .field::placeholder { color: var(--color-ink-faint); }
+  .field::placeholder { color: var(--color-faint); }
   .field:focus {
     outline: none;
-    border-color: var(--color-coral);
-    box-shadow: 0 0 0 3px var(--color-coral-wash);
+    border-color: var(--color-ink);
+    box-shadow: 0 0 0 3px rgb(16 28 43 / 0.12);
   }
 
   .btn {
@@ -108,60 +104,69 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border-radius: 8px;
+    border-radius: 6px;
     padding: 0.6rem 1rem;
     font-size: 0.875rem;
     font-weight: 600;
     line-height: 1;
     cursor: pointer;
     transition: background-color 120ms ease, color 120ms ease,
-      border-color 120ms ease, transform 120ms ease;
+      border-color 120ms ease;
   }
-  .btn:active { transform: translateY(1px); }
   .btn-primary {
-    background-color: var(--color-coral);
-    color: #fff;
-    border: 1px solid var(--color-coral);
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+    border: 1px solid var(--color-ink);
   }
-  .btn-primary:hover { background-color: var(--color-coral-deep); border-color: var(--color-coral-deep); }
+  .btn-primary:hover { background-color: #1d3149; border-color: #1d3149; }
   .btn-quiet {
-    background-color: transparent;
+    background-color: var(--color-card);
     color: var(--color-ink);
     border: 1px solid var(--color-rule-strong);
   }
-  .btn-quiet:hover { background-color: var(--color-paper-2); }
+  .btn-quiet:hover { border-color: var(--color-ink); }
   .btn-danger {
     background-color: transparent;
-    color: var(--color-coral-deep);
+    color: var(--color-signal-deep);
     border: 1px solid var(--color-rule-strong);
   }
-  .btn-danger:hover { background-color: var(--color-coral-wash); border-color: var(--color-coral); }
+  .btn-danger:hover { background-color: var(--color-signal-wash); border-color: var(--color-signal); }
 
   .chip {
     display: inline-flex;
     align-items: center;
-    border-radius: 999px;
-    padding: 0.15rem 0.55rem;
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
     font-size: 0.6875rem;
     font-weight: 600;
     letter-spacing: 0.04em;
-    background-color: var(--color-paper-3);
-    color: var(--color-ink-soft);
+    background-color: var(--color-sunk);
+    color: var(--color-muted);
     white-space: nowrap;
   }
-  .chip-due   { background-color: var(--color-coral-wash); color: var(--color-coral-deep); }
-  .chip-clear { background-color: var(--color-teal-wash); color: #2f6b5f; }
+  /* The only red thing on the page. */
+  .chip-overdue {
+    background-color: var(--color-signal-wash);
+    color: var(--color-signal-deep);
+  }
+  .chip-on {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+  }
 }
 
-/* Staggered entrance for lists. Disabled for reduced-motion users. */
-@keyframes rise {
-  from { opacity: 0; transform: translateY(6px); }
+/*
+  One motion moment: the list of people you owe a reply to resolves on load.
+  Nothing else on the site animates in.
+*/
+@keyframes settle {
+  from { opacity: 0; transform: translateY(5px); }
   to   { opacity: 1; transform: none; }
 }
-.rise {
-  animation: rise 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+.settle {
+  animation: settle 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @media (prefers-reduced-motion: reduce) {
-  .rise { animation: none; }
-  * { transition-duration: 0.01ms !important; }
+  .settle { animation: none; }
+  *, *::before, *::after { transition-duration: 0.01ms !important; }
 }

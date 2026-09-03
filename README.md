@@ -70,5 +70,17 @@ lib/
 
 ## Stack
 
-Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS v4. Type set in
-Fraunces and Karla, self-hosted via `next/font`.
+Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4. Type set in
+Newsreader and Karla, self-hosted via `next/font`.
+
+## Design rules
+
+Two conventions worth keeping if you edit the UI:
+
+- **Colour is a signal, not decoration.** Deep navy carries every piece of
+  structure. The crimson (`--color-signal`) means one thing: a person you are
+  overdue to contact. Spending it anywhere else costs the reader the ability to
+  spot an overdue row at a glance. Follow-up state is always carried by text as
+  well as colour, so nothing depends on colour alone.
+- **One motion moment.** The "Due now" list settles on load. Nothing else
+  animates, and `prefers-reduced-motion` turns even that off.

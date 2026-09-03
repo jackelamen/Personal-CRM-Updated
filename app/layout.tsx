@@ -1,14 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Karla } from "next/font/google";
+import { Karla, Newsreader } from "next/font/google";
 import { StoreProvider } from "@/lib/store";
 import SiteNav from "@/components/SiteNav";
 import "./globals.css";
 
-const fraunces = Fraunces({
+const newsreader = Newsreader({
   subsets: ["latin"],
   display: "swap",
-  axes: ["SOFT", "WONK", "opsz"],
-  variable: "--font-fraunces",
+  style: ["normal", "italic"],
+  variable: "--font-newsreader",
 });
 
 const karla = Karla({
@@ -24,22 +24,22 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#fbfaf7",
+  themeColor: "#edf0f2",
   width: "device-width",
   initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${karla.variable}`}>
+    <html lang="en" className={`${newsreader.variable} ${karla.variable}`}>
       <body className="min-h-dvh antialiased">
         <StoreProvider>
           <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-5 sm:px-8">
             <SiteNav />
             <main className="flex-1 pb-24 pt-8">{children}</main>
-            <footer className="rule py-6 text-xs text-ink-faint">
+            <footer className="rule py-6 text-xs text-muted">
               Everything is stored in this browser. Export a backup from{" "}
-              <span className="font-semibold text-ink-soft">Import &amp; data</span>.
+              <span className="font-semibold text-ink">Import &amp; data</span>.
             </footer>
           </div>
         </StoreProvider>
