@@ -71,7 +71,21 @@ lib/
 ## Stack
 
 Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4. Type set in
-Newsreader and Karla, self-hosted via `next/font`.
+IBM Plex Sans and IBM Plex Mono, self-hosted via `next/font`.
+
+## Interface
+
+It is built as an app shell, not a set of pages.
+
+- **Desktop** — a fixed left rail (Today / People / Data, with an overdue
+  badge) beside a master-detail split: the people list and the selected
+  person's details are on screen together, and each pane scrolls on its own.
+- **Mobile** — a bottom tab bar. The list fills the screen; picking someone
+  swaps to their details with a back control, rather than pushing a new page.
+- **Keyboard** — `/` focuses search from anywhere, `Esc` clears it.
+- **Quick actions** — mark contacted, push a follow-up out by a week or a
+  month, and edit notes in place (saved on blur). The common moves never
+  require opening a form.
 
 ## Design rules
 
@@ -82,5 +96,6 @@ Two conventions worth keeping if you edit the UI:
   overdue to contact. Spending it anywhere else costs the reader the ability to
   spot an overdue row at a glance. Follow-up state is always carried by text as
   well as colour, so nothing depends on colour alone.
-- **One motion moment.** The "Due now" list settles on load. Nothing else
-  animates, and `prefers-reduced-motion` turns even that off.
+- **Density over decoration.** This is a tool. Type is small and tight, rows
+  are compact, chrome is quiet, and the data reads first. Resist adding
+  headline-scale typography or page-level whitespace.

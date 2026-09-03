@@ -2,15 +2,13 @@ import { getInitials } from "@/lib/format";
 import type { Contact } from "@/lib/types";
 
 const SIZES = {
-  sm: "h-9 w-9 text-[0.78rem]",
-  md: "h-11 w-11 text-[0.9rem]",
-  lg: "h-16 w-16 text-2xl",
+  sm: "h-8 w-8 text-[0.7rem]",
+  md: "h-10 w-10 text-[0.8rem]",
 } as const;
 
 /**
- * The monogram tile standing in for a contact photo. Every plate looks the
- * same on purpose: colour on this app is reserved for follow-up state, so
- * tinting plates per person would spend the signal on decoration.
+ * Monogram standing in for a contact photo. Deliberately neutral: colour in
+ * this app is reserved for follow-up state, so plates carry none of it.
  */
 export default function Plate({
   contact,

@@ -2,181 +2,213 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Plate from "@/components/Plate";
-import Star from "@/components/Star";
-import { formatDate, formatRelativeDay, isOverdue } from "@/lib/format";
+import { BackIcon, CheckIcon, ClockIcon, StarIcon } from "@/components/Icons";
+import { formatDate, formatRelativeDay, isOverdue, todayInputDate } from "@/lib/format";
 import { useStore } from "@/lib/store";
 
 export default function ContactDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { contacts, ready, toggleFavorite, logContact, deleteContact } = useStore();
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const { contacts, ready, toggleFavorite, logContact, snooze, setFollowUp, setNotes, deleteContact } =
+    useStore();
+  const [confirming, setConfirming] = useState(false);
+  const [draftNotes, setDraftNotes] = useState("");
+  const [savedFlash, setSavedFlash] = useState(false);
 
   const contact = contacts.find((item) => item.id === params.id);
 
-  if (!ready) return <div className="h-64" aria-hidden />;
+  // Reset the notes draft when switching person in the master-detail pane.
+  useEffect(() => {
+    setDraftNotes(contact?.notes ?? "");
+    setConfirming(false);
+  }, [contact?.id, contact?.notes]);
+
+  if (!ready) return null;
 
   if (!contact) {
     return (
-      <div className="py-16 text-center">
-        <p className="font-display text-2xl text-ink">Contact not found</p>
-        <p className="mt-2 text-sm text-muted">
-          It may have been deleted from this browser.
-        </p>
-        <Link href="/people" className="btn btn-quiet mt-6">
-          Back to people
-        </Link>
+      <div className="flex h-full flex-col items-center justify-center gap-3 text-fg-muted">
+        <p className="text-[0.85rem]">That contact no longer exists.</p>
+        <Link href="/people" className="btn btn-quiet">Back to people</Link>
       </div>
     );
   }
 
+  const overdue = isOverdue(contact.nextFollowUp);
   const details = [
     { label: "Email", value: contact.email, href: `mailto:${contact.email}` },
     { label: "Phone", value: contact.phone, href: `tel:${contact.phone}` },
     { label: "Company", value: contact.company },
     { label: "Role", value: contact.role },
     { label: "Birthday", value: formatDate(contact.birthday) },
-    { label: "Last contacted", value: formatDate(contact.lastContacted) },
+    { label: "Last contacted", value: formatDate(contact.lastContacted) || "Never" },
   ].filter((item) => item.value);
 
+  const commitNotes = () => {
+    if (draftNotes === (contact.notes ?? "")) return;
+    setNotes(contact.id, draftNotes);
+    setSavedFlash(true);
+    window.setTimeout(() => setSavedFlash(false), 1400);
+  };
+
   return (
-    <article className="space-y-10">
-      <Link href="/people" className="eyebrow inline-block hover:underline">
-        ← People
-      </Link>
-
-      <header className="flex flex-wrap items-start gap-5">
-        <Plate contact={contact} size="lg" />
-        <div className="min-w-0 flex-1">
-          <h1 className="font-display text-4xl leading-tight tracking-[-0.015em] text-ink">
-            {contact.name}
-          </h1>
-          {contact.role || contact.company ? (
-            <p className="mt-1 text-muted">
-              {[contact.role, contact.company].filter(Boolean).join(" · ")}
-            </p>
-          ) : null}
-          {contact.labels.length > 0 ? (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {contact.labels.map((label) => (
-                <span key={label} className="chip">
-                  {label}
-                </span>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      </header>
-
-      <div className="flex flex-wrap gap-2">
-        <button type="button" onClick={() => logContact(contact.id)} className="btn btn-primary">
-          Mark contacted today
-        </button>
-        <button
-          type="button"
-          onClick={() => toggleFavorite(contact.id)}
-          aria-pressed={Boolean(contact.favorite)}
-          className={`btn ${contact.favorite ? "btn-primary" : "btn-quiet"}`}
+    <>
+      <div className="toolbar flex items-center gap-2 px-3 py-2">
+        <Link
+          href="/people"
+          aria-label="Back to people"
+          className="btn btn-ghost px-1.5 lg:hidden"
         >
-          <Star filled={Boolean(contact.favorite)} />
-          {contact.favorite ? "Favourite" : "Add to favourites"}
-        </button>
-        <Link href={`/people/${contact.id}/edit`} className="btn btn-quiet">
-          Edit
+          <BackIcon className="h-[18px] w-[18px]" />
         </Link>
-      </div>
-
-      {contact.nextFollowUp ? (
-        <div
-          className={`rounded-lg border p-5 ${
-            isOverdue(contact.nextFollowUp)
-              ? "border-signal bg-signal-wash"
-              : "border-rule bg-card"
-          }`}
-        >
-          <p className="eyebrow">Next follow-up</p>
-          <p className="font-display mt-1 text-2xl text-ink">
-            {formatRelativeDay(contact.nextFollowUp)}
-            <span className="ml-2 text-base font-normal text-muted">
-              {formatDate(contact.nextFollowUp)}
-            </span>
+        <Plate contact={contact} size="sm" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[0.9rem] font-semibold leading-tight">{contact.name}</p>
+          <p className="truncate text-[0.75rem] leading-tight text-fg-muted">
+            {[contact.role, contact.company].filter(Boolean).join(", ") || "No affiliation"}
           </p>
         </div>
-      ) : null}
+        <button
+          onClick={() => toggleFavorite(contact.id)}
+          aria-pressed={Boolean(contact.favorite)}
+          aria-label={contact.favorite ? "Unfavourite" : "Favourite"}
+          className={`btn btn-ghost px-1.5 ${contact.favorite ? "text-fg" : ""}`}
+        >
+          <StarIcon filled={contact.favorite} className="h-[18px] w-[18px]" />
+        </button>
+        <Link href={`/people/${contact.id}/edit`} className="btn btn-quiet">Edit</Link>
+      </div>
 
-      {details.length > 0 ? (
-        <section>
-          <h2 className="eyebrow mb-3">Details</h2>
-          <dl className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
-            {details.map((item) => (
-              <div key={item.label} className="border-t border-rule pt-3">
-                <dt className="eyebrow">{item.label}</dt>
-                <dd className="mt-1 break-words text-[0.95rem] text-ink">
-                  {item.href ? (
-                    <a href={item.href} className="hover:underline hover:underline">
-                      {item.value}
-                    </a>
-                  ) : (
-                    item.value
-                  )}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-      ) : null}
-
-      <section>
-        <h2 className="eyebrow mb-3">Notes</h2>
-        <div className="rounded-lg border border-rule bg-card p-5">
-          {contact.notes ? (
-            <p className="whitespace-pre-wrap text-[0.95rem] leading-relaxed text-ink">
-              {contact.notes}
-            </p>
-          ) : (
-            <p className="text-sm text-faint">
-              Nothing written down yet. Use Edit to add what you want to remember.
-            </p>
-          )}
-        </div>
-      </section>
-
-      <section className="rule pt-6">
-        {confirmingDelete ? (
-          <div className="flex flex-wrap items-center gap-3">
-            <p className="text-sm text-ink">
-              Delete {contact.name} permanently?
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                deleteContact(contact.id);
-                router.push("/people");
-              }}
-              className="btn btn-primary"
-            >
-              Yes, delete
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmingDelete(false)}
-              className="btn btn-quiet"
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setConfirmingDelete(true)}
-            className="btn btn-danger"
+      <div className="pane flex-1">
+        <div className="mx-auto max-w-2xl space-y-5 p-4">
+          {/* Follow-up: the one thing this app exists to keep on top of. */}
+          <section
+            className={`rounded-lg border p-3 ${
+              overdue ? "border-signal/50 bg-signal-wash" : "border-line bg-surface"
+            }`}
           >
-            Delete contact
-          </button>
-        )}
-      </section>
-    </article>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <ClockIcon className={`h-4 w-4 ${overdue ? "text-signal-deep" : "text-fg-muted"}`} />
+              <p className="flex-1 text-[0.85rem]">
+                {contact.nextFollowUp ? (
+                  <>
+                    <span className={overdue ? "font-semibold text-signal-deep" : "font-medium"}>
+                      {formatRelativeDay(contact.nextFollowUp)}
+                    </span>
+                    <span className="text-fg-muted"> · {formatDate(contact.nextFollowUp)}</span>
+                  </>
+                ) : (
+                  <span className="text-fg-muted">No follow-up scheduled</span>
+                )}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                <button onClick={() => logContact(contact.id)} className="btn btn-primary">
+                  <CheckIcon className="h-3.5 w-3.5" />
+                  Contacted
+                </button>
+                <button
+                  onClick={() => snooze(contact.id, 7)}
+                  aria-label="Follow up in one week"
+                  className="btn btn-quiet"
+                >
+                  +1w
+                </button>
+                <button
+                  onClick={() => snooze(contact.id, 30)}
+                  aria-label="Follow up in one month"
+                  className="btn btn-quiet"
+                >
+                  +1m
+                </button>
+                {contact.nextFollowUp ? (
+                  <button
+                    onClick={() => setFollowUp(contact.id, undefined)}
+                    className="btn btn-ghost"
+                  >
+                    Clear
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setFollowUp(contact.id, todayInputDate())}
+                    className="btn btn-quiet"
+                  >
+                    Today
+                  </button>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {contact.labels.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {contact.labels.map((l) => <span key={l} className="chip">{l}</span>)}
+            </div>
+          ) : null}
+
+          <section>
+            <div className="mb-1.5 flex items-center justify-between">
+              <h2 className="label">Notes</h2>
+              {savedFlash ? <span className="chip chip-ok">Saved</span> : null}
+            </div>
+            {/* Edited in place and saved on blur; no round trip to a form page. */}
+            <textarea
+              value={draftNotes}
+              onChange={(e) => setDraftNotes(e.target.value)}
+              onBlur={commitNotes}
+              rows={5}
+              placeholder="What do you want to remember about this person?"
+              className="field resize-y leading-relaxed"
+            />
+          </section>
+
+          <section>
+            <h2 className="label mb-1.5">Details</h2>
+            <dl className="overflow-hidden rounded-lg border border-line bg-surface">
+              {details.map((item) => (
+                <div
+                  key={item.label}
+                  className="flex gap-3 border-b border-line px-3 py-2 last:border-b-0"
+                >
+                  <dt className="w-28 shrink-0 text-[0.78rem] text-fg-muted">{item.label}</dt>
+                  <dd className="min-w-0 flex-1 break-words text-[0.85rem]">
+                    {item.href ? (
+                      <a href={item.href} className="underline decoration-line-strong underline-offset-2 hover:decoration-fg">
+                        {item.value}
+                      </a>
+                    ) : (
+                      item.value
+                    )}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+
+          <section className="border-t border-line pt-4">
+            {confirming ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[0.8rem]">Delete {contact.name}?</span>
+                <button
+                  onClick={() => {
+                    deleteContact(contact.id);
+                    router.push("/people");
+                  }}
+                  className="btn btn-primary"
+                >
+                  Delete
+                </button>
+                <button onClick={() => setConfirming(false)} className="btn btn-quiet">Cancel</button>
+              </div>
+            ) : (
+              <button onClick={() => setConfirming(true)} className="btn btn-danger">
+                Delete contact
+              </button>
+            )}
+          </section>
+        </div>
+      </div>
+    </>
   );
 }

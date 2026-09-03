@@ -23,6 +23,10 @@ type Store = {
   deleteContact: (id: string) => void;
   toggleFavorite: (id: string) => void;
   logContact: (id: string, on?: string) => void;
+  /** Push a follow-up out by N days from today. */
+  snooze: (id: string, days: number) => void;
+  setFollowUp: (id: string, date?: string) => void;
+  setNotes: (id: string, notes: string) => void;
   importText: (text: string) => ImportResult;
   replaceAll: (contacts: Contact[]) => void;
   clearAll: () => void;
@@ -137,6 +141,33 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     );
   }, []);
 
+  const snooze = useCallback((id: string, days: number) => {
+    const target = new Date();
+    target.setDate(target.getDate() + days);
+    const when = `${target.getFullYear()}-${`${target.getMonth() + 1}`.padStart(2, "0")}-${`${target.getDate()}`.padStart(2, "0")}`;
+    setContacts((previous) =>
+      previous.map((contact) =>
+        contact.id === id ? { ...contact, nextFollowUp: when } : contact,
+      ),
+    );
+  }, []);
+
+  const setFollowUp = useCallback((id: string, date?: string) => {
+    setContacts((previous) =>
+      previous.map((contact) =>
+        contact.id === id ? { ...contact, nextFollowUp: date || undefined } : contact,
+      ),
+    );
+  }, []);
+
+  const setNotes = useCallback((id: string, notes: string) => {
+    setContacts((previous) =>
+      previous.map((contact) =>
+        contact.id === id ? { ...contact, notes: notes.trim() || undefined } : contact,
+      ),
+    );
+  }, []);
+
   const importText = useCallback((text: string): ImportResult => {
     const drafts = parseContacts(text);
     let result: ImportResult = { added: 0, skipped: 0 };
@@ -181,6 +212,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       deleteContact,
       toggleFavorite,
       logContact,
+      snooze,
+      setFollowUp,
+      setNotes,
       importText,
       replaceAll,
       clearAll,
@@ -193,6 +227,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       deleteContact,
       toggleFavorite,
       logContact,
+      snooze,
+      setFollowUp,
+      setNotes,
       importText,
       replaceAll,
       clearAll,

@@ -1,47 +1,43 @@
 import type { Metadata, Viewport } from "next";
-import { Karla, Newsreader } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { StoreProvider } from "@/lib/store";
-import SiteNav from "@/components/SiteNav";
+import AppShell from "@/components/AppShell";
 import "./globals.css";
 
-const newsreader = Newsreader({
+const plex = IBM_Plex_Sans({
   subsets: ["latin"],
   display: "swap",
-  style: ["normal", "italic"],
-  variable: "--font-newsreader",
+  weight: ["400", "500", "600"],
+  variable: "--font-plex",
 });
 
-const karla = Karla({
+const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-karla",
+  weight: ["400", "500"],
+  variable: "--font-plex-mono",
 });
 
 export const metadata: Metadata = {
-  title: "Rolodex — a personal CRM",
-  description:
-    "Keep track of the people you know: notes, labels, and follow-ups that do not slip.",
+  title: "Rolodex",
+  description: "A personal CRM: notes, labels and follow-ups that do not slip.",
+  appleWebApp: { capable: true, title: "Rolodex", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#edf0f2",
+  themeColor: "#f6f7f9",
   width: "device-width",
   initialScale: 1,
+  // An app shell should not zoom-bounce like a document.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${newsreader.variable} ${karla.variable}`}>
-      <body className="min-h-dvh antialiased">
+    <html lang="en" className={`${plex.variable} ${plexMono.variable}`}>
+      <body className="antialiased">
         <StoreProvider>
-          <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-5 sm:px-8">
-            <SiteNav />
-            <main className="flex-1 pb-24 pt-8">{children}</main>
-            <footer className="rule py-6 text-xs text-muted">
-              Everything is stored in this browser. Export a backup from{" "}
-              <span className="font-semibold text-ink">Import &amp; data</span>.
-            </footer>
-          </div>
+          <AppShell>{children}</AppShell>
         </StoreProvider>
       </body>
     </html>

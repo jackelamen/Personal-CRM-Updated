@@ -2,12 +2,12 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="py-24 text-center">
-      <p className="eyebrow">404</p>
-      <h1 className="font-display mt-2 text-4xl tracking-[-0.015em] text-ink">
+    <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+      <p className="label">404</p>
+      <h1 className="text-[1.05rem] font-semibold">
         This page does not exist
       </h1>
-      <Link href="/" className="btn btn-primary mt-8">
+      <Link href="/" className="btn btn-primary">
         Back to Today
       </Link>
     </div>

@@ -80,13 +80,15 @@ export default function ImportPage() {
   if (!ready) return <div className="h-64" aria-hidden />;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-12">
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="toolbar px-4 py-2.5">
+        <h1 className="text-[0.95rem] font-semibold">Import &amp; data</h1>
+      </div>
+      <div className="pane flex-1">
+      <div className="mx-auto max-w-2xl space-y-6 p-4">
       <div>
-        <p className="eyebrow">Bring people in</p>
-        <h1 className="font-display mt-2 text-4xl tracking-[-0.015em] text-ink">
-          Import &amp; data
-        </h1>
-        <p className="mt-3 text-[0.95rem] leading-relaxed text-muted">
+        <h1 className="text-[0.95rem] font-semibold">Import &amp; data</h1>
+        <p className="mt-1 text-[0.82rem] leading-relaxed text-fg-muted">
           Export your contacts from Google Contacts as a CSV or vCard, then drop the
           file in below. Anyone whose email or phone already appears in your list is
           skipped, so importing twice is safe.
@@ -96,9 +98,9 @@ export default function ImportPage() {
       {status.kind !== "idle" ? (
         <p
           role="status"
-          className={`rounded-lg border px-4 py-3 text-sm font-semibold ${
+          className={`rounded-md border px-3 py-2 text-[0.8rem] font-medium ${
             status.kind === "ok"
-              ? "border-rule bg-sunk text-ink"
+              ? "border-line bg-sunk text-fg"
               : "border-signal bg-signal-wash text-signal-deep"
           }`}
         >
@@ -106,8 +108,8 @@ export default function ImportPage() {
         </p>
       ) : null}
 
-      <section className="space-y-4">
-        <h2 className="eyebrow">From a file</h2>
+      <section className="space-y-3">
+        <h2 className="label">From a file</h2>
         <input
           ref={fileInput}
           type="file"
@@ -128,23 +130,23 @@ export default function ImportPage() {
         </button>
       </section>
 
-      <section className="space-y-4">
-        <h2 className="eyebrow">Or paste the contents</h2>
+      <section className="space-y-3">
+        <h2 className="label">Or paste the contents</h2>
         <textarea
           value={text}
           onChange={(event) => setText(event.target.value)}
           rows={8}
           placeholder="Paste CSV rows or a BEGIN:VCARD block…"
-          className="field resize-y font-mono text-xs leading-relaxed"
+          className="field resize-y font-mono text-[0.72rem] leading-relaxed"
         />
         <button type="button" onClick={() => runImport(text)} className="btn btn-quiet">
           Import pasted text
         </button>
       </section>
 
-      <section className="rule space-y-4 pt-8">
-        <h2 className="eyebrow">Backup</h2>
-        <p className="text-sm leading-relaxed text-muted">
+      <section className="space-y-3 border-t border-line pt-5">
+        <h2 className="label">Backup</h2>
+        <p className="text-[0.82rem] leading-relaxed text-fg-muted">
           Your contacts live in this browser only. Download a backup to keep a copy or
           move your list to another device.
         </p>
@@ -178,11 +180,11 @@ export default function ImportPage() {
         </div>
       </section>
 
-      <section className="rule space-y-4 pt-8">
-        <h2 className="eyebrow">Danger zone</h2>
+      <section className="space-y-3 border-t border-line pt-5">
+        <h2 className="label">Danger zone</h2>
         {confirmingClear ? (
           <div className="flex flex-wrap items-center gap-3">
-            <p className="text-sm text-ink">
+            <p className="text-[0.82rem] text-fg">
               Delete all {contacts.length} contacts from this browser?
             </p>
             <button
@@ -215,6 +217,8 @@ export default function ImportPage() {
           </button>
         )}
       </section>
+      </div>
+      </div>
     </div>
   );
 }

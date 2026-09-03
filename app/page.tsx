@@ -1,130 +1,136 @@
 "use client";
 
 import Link from "next/link";
-import ContactList from "@/components/ContactList";
-import Empty from "@/components/Empty";
+import { useMemo, useState } from "react";
 import Plate from "@/components/Plate";
+import { CheckIcon } from "@/components/Icons";
 import { daysUntil, formatRelativeDay, isOverdue } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import type { Contact } from "@/lib/types";
 
-function byFollowUp(a: Contact, b: Contact) {
-  return (daysUntil(a.nextFollowUp) ?? 0) - (daysUntil(b.nextFollowUp) ?? 0);
-}
+type Scope = "overdue" | "week" | "all";
 
 export default function TodayPage() {
-  const { contacts, ready, logContact } = useStore();
+  const { contacts, ready, logContact, snooze } = useStore();
+  const [scope, setScope] = useState<Scope>("week");
 
-  // Nothing renders from storage until it has been read, so the server markup
-  // and the first client render agree.
-  if (!ready) return <div className="h-64" aria-hidden />;
+  const buckets = useMemo(() => {
+    const withDate = contacts
+      .filter((c) => c.nextFollowUp)
+      .sort((a, b) => (daysUntil(a.nextFollowUp) ?? 0) - (daysUntil(b.nextFollowUp) ?? 0));
+    return {
+      overdue: withDate.filter((c) => (daysUntil(c.nextFollowUp) ?? 1) <= 0),
+      week: withDate.filter((c) => (daysUntil(c.nextFollowUp) ?? 99) <= 7),
+      all: withDate,
+    };
+  }, [contacts]);
 
-  if (contacts.length === 0) {
-    return (
-      <Empty
-        title="No one here yet"
-        body="Add a contact by hand, or bring in a Google Contacts export to get started."
-        action={{ href: "/import", label: "Import contacts" }}
-      />
-    );
-  }
+  if (!ready) return null;
 
-  const due = contacts
-    .filter((contact) => (daysUntil(contact.nextFollowUp) ?? 99) <= 7)
-    .sort(byFollowUp);
-
-  const later = contacts
-    .filter((contact) => (daysUntil(contact.nextFollowUp) ?? -1) > 7)
-    .sort(byFollowUp)
-    .slice(0, 5);
-
-  const overdueCount = due.filter((contact) => isOverdue(contact.nextFollowUp)).length;
+  const list: Contact[] = buckets[scope];
+  const SCOPES: { value: Scope; label: string; count: number }[] = [
+    { value: "overdue", label: "Overdue", count: buckets.overdue.length },
+    { value: "week", label: "This week", count: buckets.week.length },
+    { value: "all", label: "All", count: buckets.all.length },
+  ];
 
   return (
-    <div className="space-y-14">
-      <section>
-        <p className="eyebrow">
-          <time>
-            {new Date().toLocaleDateString(undefined, {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-            })}
-          </time>
-        </p>
-        <h1 className="font-display mt-3 max-w-2xl text-[2.6rem] leading-[1.08] tracking-[-0.015em] text-ink sm:text-[3.25rem]">
-          {due.length === 0 ? (
-            <>No one is waiting on you today.</>
-          ) : overdueCount > 0 ? (
-            <>
-              You are{" "}
-              <em className="not-italic text-signal-deep">
-                {overdueCount} {overdueCount === 1 ? "reply" : "replies"} behind
-              </em>
-              .
-            </>
-          ) : (
-            <>
-              {due.length} {due.length === 1 ? "person" : "people"} to reach out to
-              this week.
-            </>
-          )}
-        </h1>
-      </section>
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="toolbar flex flex-wrap items-center gap-2 px-4 py-2.5">
+        <h1 className="text-[0.95rem] font-semibold">Today</h1>
+        <div className="segment ml-auto" role="tablist" aria-label="Filter follow-ups">
+          {SCOPES.map((s) => (
+            <button
+              key={s.value}
+              role="tab"
+              aria-selected={scope === s.value}
+              onClick={() => setScope(s.value)}
+            >
+              {s.label}
+              <span className="ml-1 tabular text-fg-faint">{s.count}</span>
+            </button>
+          ))}
+        </div>
+      </div>
 
-      {due.length > 0 ? (
-        <section>
-          <h2 className="eyebrow mb-4">Due now</h2>
-          <ul className="space-y-3">
-            {due.map((contact, index) => {
-              const overdue = isOverdue(contact.nextFollowUp);
-              return (
-                <li
-                  key={contact.id}
-                  className={`settle flex flex-wrap items-center gap-x-4 gap-y-3 rounded-lg border bg-card p-4 ${
-                    overdue ? "border-signal/40" : "border-rule"
-                  }`}
-                  style={{ animationDelay: `${index * 45}ms` }}
-                >
-                  <Plate contact={contact} />
-                  {/* Fills the rest of row one on narrow screens, so the chip
-                      and button wrap below rather than crowding the name. */}
-                  <div className="min-w-0 flex-1 basis-[calc(100%-3.75rem)] sm:basis-0">
-                    <Link
-                      href={`/people/${contact.id}`}
-                      className="font-display text-lg text-ink hover:underline"
-                    >
-                      {contact.name}
-                    </Link>
-                    <p className="truncate text-sm text-muted">
-                      {contact.notes || "No notes yet."}
-                    </p>
-                  </div>
-                  <div className="ml-auto flex items-center gap-3">
+      <div className="pane flex-1">
+        <div className="mx-auto max-w-3xl p-3 sm:p-4">
+          {contacts.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-line-strong bg-surface p-8 text-center">
+              <p className="text-[0.9rem] font-medium">No contacts yet</p>
+              <p className="mx-auto mt-1 max-w-xs text-[0.8rem] text-fg-muted">
+                Import a Google Contacts export, or add someone by hand.
+              </p>
+              <div className="mt-4 flex justify-center gap-2">
+                <Link href="/import" className="btn btn-primary">Import</Link>
+                <Link href="/people/new" className="btn btn-quiet">Add contact</Link>
+              </div>
+            </div>
+          ) : list.length === 0 ? (
+            <div className="rounded-lg border border-line bg-surface p-8 text-center">
+              <p className="text-[0.9rem] font-medium">
+                {scope === "overdue" ? "Nothing overdue." : "Nothing scheduled here."}
+              </p>
+              <p className="mt-1 text-[0.8rem] text-fg-muted">
+                Set a follow-up on someone from their profile.
+              </p>
+            </div>
+          ) : (
+            <ul className="overflow-hidden rounded-lg border border-line bg-surface">
+              {list.map((contact) => {
+                const overdue = isOverdue(contact.nextFollowUp);
+                return (
+                  <li
+                    key={contact.id}
+                    className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line px-3 py-2.5 last:border-b-0"
+                  >
+                    {/* Left edge marks overdue without relying on colour alone;
+                        the chip still spells the state out. */}
+                    <span
+                      aria-hidden
+                      className={`h-8 w-0.5 rounded-full ${overdue ? "bg-signal" : "bg-transparent"}`}
+                    />
+                    <Plate contact={contact} size="sm" />
+                    <div className="min-w-0 flex-1 basis-[calc(100%-5rem)] sm:basis-0">
+                      <Link
+                        href={`/people/${contact.id}`}
+                        className="block truncate text-[0.875rem] font-medium leading-tight hover:underline"
+                      >
+                        {contact.name}
+                      </Link>
+                      <p className="truncate text-[0.78rem] leading-tight text-fg-muted">
+                        {contact.notes || "No notes"}
+                      </p>
+                    </div>
                     <span className={`chip ${overdue ? "chip-overdue" : ""}`}>
                       {formatRelativeDay(contact.nextFollowUp)}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => logContact(contact.id)}
-                      className="btn btn-quiet"
-                    >
-                      Mark contacted
-                    </button>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ) : null}
-
-      {later.length > 0 ? (
-        <section>
-          <h2 className="eyebrow mb-4">Coming up</h2>
-          <ContactList contacts={later} />
-        </section>
-      ) : null}
+                    <div className="ml-auto flex gap-1.5">
+                      {/* The label is hidden on narrow screens, so the button
+                          carries its own accessible name. */}
+                      <button
+                        onClick={() => logContact(contact.id)}
+                        aria-label={`Mark ${contact.name} contacted today`}
+                        className="btn btn-primary"
+                      >
+                        <CheckIcon className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">Contacted</span>
+                      </button>
+                      <button
+                        onClick={() => snooze(contact.id, 7)}
+                        aria-label={`Push ${contact.name} back one week`}
+                        className="btn btn-quiet"
+                      >
+                        +1w
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

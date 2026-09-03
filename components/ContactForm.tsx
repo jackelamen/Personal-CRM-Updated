@@ -78,32 +78,32 @@ export default function ContactForm({
     placeholder?: string,
   ) => (
     <label className="block">
-      <span className="eyebrow">{label}</span>
+      <span className="label">{label}</span>
       <input
         type={type}
         value={values[key]}
         onChange={set(key)}
         placeholder={placeholder}
-        className="field mt-1.5"
+        className="field mt-1"
       />
     </label>
   );
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
       <label className="block">
-        <span className="eyebrow">Name</span>
+        <span className="label">Name</span>
         <input
           value={values.name}
           onChange={set("name")}
           placeholder="Maya Chen"
           aria-invalid={Boolean(error)}
-          className="field mt-1.5 font-display text-lg"
+          className="field mt-1"
         />
       </label>
       {error ? <p className="text-sm font-semibold text-signal-deep">{error}</p> : null}
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2">
         {text("company", "Company", "text", "Northstar Studio")}
         {text("role", "Role", "text", "Creative Director")}
         {text("email", "Email", "email", "maya@example.com")}
@@ -115,13 +115,13 @@ export default function ContactForm({
       </div>
 
       <label className="block">
-        <span className="eyebrow">Notes</span>
+        <span className="label">Notes</span>
         <textarea
           value={values.notes}
           onChange={set("notes")}
           rows={5}
           placeholder="What do you want to remember about this person?"
-          className="field mt-1.5 resize-y leading-relaxed"
+          className="field mt-1 resize-y leading-relaxed"
         />
       </label>
 
