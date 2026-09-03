@@ -16,6 +16,8 @@ export type Contact = {
   nextFollowUp?: string;
   source: ContactSource;
   favorite?: boolean;
+  /** Dates you logged contact, oldest first. Drives the activity chart. */
+  history?: string[];
 };
 
 /** A contact before it has an id or a resolved display name. */

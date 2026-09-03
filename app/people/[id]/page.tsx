@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Plate from "@/components/Plate";
+import Avatar from "@/components/Avatar";
 import { BackIcon, CheckIcon, ClockIcon, StarIcon } from "@/components/Icons";
 import { formatDate, formatRelativeDay, isOverdue, todayInputDate } from "@/lib/format";
 import { useStore } from "@/lib/store";
@@ -63,7 +63,7 @@ export default function ContactDetailPage() {
         >
           <BackIcon className="h-[18px] w-[18px]" />
         </Link>
-        <Plate contact={contact} size="sm" />
+        <Avatar contact={contact} size="sm" ring={overdue} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-[0.9rem] font-semibold leading-tight">{contact.name}</p>
           <p className="truncate text-[0.75rem] leading-tight text-fg-muted">
@@ -85,16 +85,16 @@ export default function ContactDetailPage() {
         <div className="mx-auto max-w-2xl space-y-5 p-4">
           {/* Follow-up: the one thing this app exists to keep on top of. */}
           <section
-            className={`rounded-lg border p-3 ${
-              overdue ? "border-signal/50 bg-signal-wash" : "border-line bg-surface"
+            className={`rounded-2xl border p-3 ${
+              overdue ? "border-danger/40 bg-danger-wash" : "border-line bg-card"
             }`}
           >
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <ClockIcon className={`h-4 w-4 ${overdue ? "text-signal-deep" : "text-fg-muted"}`} />
+              <ClockIcon className={`h-4 w-4 ${overdue ? "text-danger" : "text-fg-muted"}`} />
               <p className="flex-1 text-[0.85rem]">
                 {contact.nextFollowUp ? (
                   <>
-                    <span className={overdue ? "font-semibold text-signal-deep" : "font-medium"}>
+                    <span className={overdue ? "font-semibold text-danger" : "font-medium"}>
                       {formatRelativeDay(contact.nextFollowUp)}
                     </span>
                     <span className="text-fg-muted"> · {formatDate(contact.nextFollowUp)}</span>
@@ -165,16 +165,16 @@ export default function ContactDetailPage() {
 
           <section>
             <h2 className="label mb-1.5">Details</h2>
-            <dl className="overflow-hidden rounded-lg border border-line bg-surface">
+            <dl className="overflow-hidden rounded-2xl border border-line bg-card">
               {details.map((item) => (
                 <div
                   key={item.label}
-                  className="flex gap-3 border-b border-line px-3 py-2 last:border-b-0"
+                  className="flex gap-3 border-b border-line px-3.5 py-2.5 last:border-b-0"
                 >
                   <dt className="w-28 shrink-0 text-[0.78rem] text-fg-muted">{item.label}</dt>
                   <dd className="min-w-0 flex-1 break-words text-[0.85rem]">
                     {item.href ? (
-                      <a href={item.href} className="underline decoration-line-strong underline-offset-2 hover:decoration-fg">
+                      <a href={item.href} className="text-accent underline-offset-2 hover:underline">
                         {item.value}
                       </a>
                     ) : (

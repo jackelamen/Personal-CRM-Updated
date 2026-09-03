@@ -13,6 +13,11 @@ function offsetDays(days: number): string {
  * shell. Dates are relative to today so the follow-up views always demonstrate
  * an overdue item, one due today, and one upcoming.
  */
+/** A few past touchpoints so the activity chart has something real to show. */
+function log(...offsets: number[]): string[] {
+  return offsets.map(offsetDays).sort();
+}
+
 export function seedContacts(): Contact[] {
   return [
     {
@@ -28,6 +33,7 @@ export function seedContacts(): Contact[] {
         "Met at the design roundtable. She is exploring a move into independent consulting and asked to be introduced to two people doing the same.",
       labels: ["Design", "Local"],
       lastContacted: offsetDays(-14),
+      history: log(-14, -48, -96, -140, -190, -255),
       nextFollowUp: offsetDays(-2),
       source: "sample",
       favorite: true,
@@ -43,6 +49,7 @@ export function seedContacts(): Contact[] {
       notes: "Send the photo from the hiking trip and ask about the fall retreat.",
       labels: ["Friends"],
       lastContacted: offsetDays(-23),
+      history: log(-23, -70, -128, -205, -300),
       nextFollowUp: todayInputDate(),
       source: "sample",
     },
@@ -58,6 +65,7 @@ export function seedContacts(): Contact[] {
       notes: "Interested in swapping notes on community-led growth.",
       labels: ["Work"],
       lastContacted: offsetDays(-37),
+      history: log(-37, -84, -160, -240),
       nextFollowUp: offsetDays(5),
       source: "sample",
     },
@@ -72,6 +80,7 @@ export function seedContacts(): Contact[] {
       notes: "Wants a draft of the essay by the end of the quarter.",
       labels: ["Writing", "Work"],
       lastContacted: offsetDays(-6),
+      history: log(-6, -20, -55, -110, -175, -230, -310),
       source: "sample",
       favorite: true,
     },

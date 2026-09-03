@@ -1,68 +1,70 @@
 @import "tailwindcss";
 
 /*
-  A dense productivity UI, not a document. Type is set small and tight, rows
-  are compact, and chrome is quiet so the data reads first.
-
-  Colour rule: one ink for structure, one signal for state. Crimson means a
-  follow-up you are overdue on and nothing else, so an overdue row is spottable
-  at a glance. State is always carried by text too, never colour alone.
+  Dark, high-contrast product UI. One vivid accent (lime) carries positive
+  action; one status red carries "overdue". Avatar tints are a validated
+  4-slot categorical set (see lib/format.ts) and always sit under the
+  person's initials, so identity is never colour alone.
 */
 @theme {
-  --color-app: #f6f7f9;
-  --color-surface: #ffffff;
-  --color-sunk: #eef1f4;
+  --color-bg: #0e1014;
+  --color-card: #171a21;
+  --color-card-2: #1e222b;
+  --color-line: #262c37;
+  --color-line-2: #333a47;
 
-  --color-fg: #131a22;
-  --color-fg-muted: #5d6b78;
-  --color-fg-faint: #8894a0;
+  --color-fg: #f3f6fa;
+  --color-fg-muted: #97a3b6;
+  --color-fg-faint: #6b7688;
 
-  --color-line: #e0e5ea;
-  --color-line-strong: #c6ced6;
+  /* Vivid accent: primary action and the single chart series. */
+  --color-accent: #c8f169;
+  --color-accent-ink: #10140a;
+  --color-accent-dim: #6d9c33;
 
-  --color-rail: #141c26;
-  --color-rail-fg: #f2f5f8;
-  --color-rail-muted: #93a1b0;
-  --color-rail-active: #26313e;
+  --color-danger: #ff6b6b;
+  --color-danger-dim: #7d2f36;
+  --color-danger-wash: #2a1519;
 
-  --color-signal: #d02b48;
-  --color-signal-deep: #a81f39;
-  --color-signal-wash: #fdeaee;
-
-  --color-ok: #0f7a5f;
-  --color-ok-wash: #e4f4ef;
+  /* Validated categorical set for avatar identity (dark surface #171a21):
+     lightness band, chroma, CVD and contrast all pass. */
+  --color-c1: #6d9c33;
+  --color-c2: #7a69e8;
+  --color-c3: #3596bc;
+  --color-c4: #b86e2a;
 
   --font-sans: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 }
 
 @layer base {
-  html { -webkit-text-size-adjust: 100%; }
+  html {
+    -webkit-text-size-adjust: 100%;
+    color-scheme: dark;
+  }
 
   body {
-    background-color: var(--color-app);
+    background-color: var(--color-bg);
     color: var(--color-fg);
     font-family: var(--font-sans);
     font-size: 14px;
-    /* An app fills the viewport; it does not scroll as one long page. */
     overscroll-behavior-y: none;
   }
 
-  ::selection { background-color: var(--color-fg); color: var(--color-surface); }
+  ::selection { background-color: var(--color-accent); color: var(--color-accent-ink); }
 
   :focus-visible {
-    outline: 2px solid var(--color-fg);
-    outline-offset: 1px;
-    border-radius: 4px;
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 8px;
   }
 
   time, .tabular { font-variant-numeric: tabular-nums; }
 
-  /* Panes scroll independently, like native columns. */
   .pane { overflow-y: auto; overscroll-behavior: contain; }
   .pane::-webkit-scrollbar { width: 10px; }
   .pane::-webkit-scrollbar-thumb {
-    background-color: var(--color-line-strong);
+    background-color: var(--color-line-2);
     border: 3px solid transparent;
     background-clip: content-box;
     border-radius: 999px;
@@ -71,148 +73,153 @@
 
 @layer components {
   .label {
-    font-size: 0.6875rem;
+    font-size: 0.66rem;
     font-weight: 600;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--color-fg-faint);
   }
 
-  /* Sticky pane header holding a title and its controls. */
+  /* Rounded elevated tile, the core surface of the whole UI. */
+  .card {
+    background-color: var(--color-card);
+    border: 1px solid var(--color-line);
+    border-radius: 18px;
+  }
+  .card-2 { background-color: var(--color-card-2); }
+
   .toolbar {
     position: sticky;
     top: 0;
     z-index: 20;
-    background-color: color-mix(in srgb, var(--color-app) 88%, transparent);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--color-line);
+    background-color: color-mix(in srgb, var(--color-bg) 86%, transparent);
+    backdrop-filter: blur(12px);
   }
 
   .plate {
     display: grid;
     place-items: center;
-    border-radius: 6px;
-    background-color: var(--color-sunk);
-    color: var(--color-fg-muted);
+    border-radius: 999px;
     font-weight: 600;
-    letter-spacing: 0.01em;
+    color: #fff;
     flex-shrink: 0;
+    letter-spacing: 0.01em;
   }
 
   .field {
     width: 100%;
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-line-strong);
-    border-radius: 6px;
-    padding: 0.45rem 0.6rem;
+    background-color: var(--color-card);
+    border: 1px solid var(--color-line);
+    border-radius: 12px;
+    padding: 0.6rem 0.8rem;
     font-size: 0.875rem;
     color: var(--color-fg);
-    transition: border-color 100ms ease, box-shadow 100ms ease;
+    transition: border-color 120ms ease, box-shadow 120ms ease;
   }
   .field::placeholder { color: var(--color-fg-faint); }
   .field:focus {
     outline: none;
-    border-color: var(--color-fg);
-    box-shadow: 0 0 0 3px rgb(19 26 34 / 0.1);
+    border-color: var(--color-accent-dim);
+    box-shadow: 0 0 0 3px rgb(200 241 105 / 0.14);
   }
 
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.375rem;
-    border-radius: 6px;
-    padding: 0.4rem 0.7rem;
+    gap: 0.4rem;
+    border-radius: 999px;
+    padding: 0.5rem 0.95rem;
     font-size: 0.8125rem;
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1.15;
     white-space: nowrap;
     cursor: pointer;
-    transition: background-color 100ms ease, border-color 100ms ease, color 100ms ease;
+    transition: background-color 120ms ease, border-color 120ms ease,
+      color 120ms ease, transform 120ms ease;
   }
+  .btn:active { transform: scale(0.97); }
   .btn-primary {
-    background-color: var(--color-fg);
-    color: var(--color-surface);
-    border: 1px solid var(--color-fg);
+    background-color: var(--color-accent);
+    color: var(--color-accent-ink);
+    border: 1px solid var(--color-accent);
   }
-  .btn-primary:hover { background-color: #24303d; }
+  .btn-primary:hover { background-color: #d5f785; }
   .btn-quiet {
-    background-color: var(--color-surface);
+    background-color: var(--color-card-2);
     color: var(--color-fg);
-    border: 1px solid var(--color-line-strong);
+    border: 1px solid var(--color-line-2);
   }
-  .btn-quiet:hover { background-color: var(--color-sunk); }
+  .btn-quiet:hover { border-color: var(--color-fg-faint); }
   .btn-ghost {
     background-color: transparent;
     color: var(--color-fg-muted);
     border: 1px solid transparent;
   }
-  .btn-ghost:hover { background-color: var(--color-sunk); color: var(--color-fg); }
+  .btn-ghost:hover { background-color: var(--color-card-2); color: var(--color-fg); }
   .btn-danger {
     background-color: transparent;
-    color: var(--color-signal-deep);
-    border: 1px solid var(--color-line-strong);
+    color: var(--color-danger);
+    border: 1px solid var(--color-danger-dim);
   }
-  .btn-danger:hover { background-color: var(--color-signal-wash); border-color: var(--color-signal); }
-  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-danger:hover { background-color: var(--color-danger-wash); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
   .chip {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    border-radius: 4px;
-    padding: 0.15rem 0.4rem;
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
     font-size: 0.6875rem;
-    font-weight: 500;
-    background-color: var(--color-sunk);
+    font-weight: 600;
+    background-color: var(--color-card-2);
     color: var(--color-fg-muted);
     white-space: nowrap;
   }
-  .chip-overdue { background-color: var(--color-signal-wash); color: var(--color-signal-deep); }
-  .chip-ok { background-color: var(--color-ok-wash); color: var(--color-ok); }
-  .chip-on { background-color: var(--color-fg); color: var(--color-surface); }
+  .chip-overdue { background-color: var(--color-danger-wash); color: var(--color-danger); }
+  .chip-on { background-color: var(--color-accent); color: var(--color-accent-ink); }
 
-  /* Segmented control for switching a list's scope. */
   .segment {
     display: inline-flex;
-    padding: 2px;
-    border-radius: 7px;
-    background-color: var(--color-sunk);
+    padding: 3px;
+    border-radius: 999px;
+    background-color: var(--color-card);
+    border: 1px solid var(--color-line);
   }
   .segment button {
-    border-radius: 5px;
-    padding: 0.25rem 0.6rem;
-    font-size: 0.78rem;
-    font-weight: 500;
+    border-radius: 999px;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.75rem;
+    font-weight: 600;
     color: var(--color-fg-muted);
     cursor: pointer;
+    transition: background-color 120ms ease, color 120ms ease;
   }
   .segment button[aria-selected="true"] {
-    background-color: var(--color-surface);
-    color: var(--color-fg);
-    box-shadow: 0 1px 2px rgb(19 26 34 / 0.1);
+    background-color: var(--color-accent);
+    color: var(--color-accent-ink);
   }
 
   .row {
     display: flex;
     align-items: center;
-    gap: 0.7rem;
-    padding: 0.55rem 0.9rem;
-    border-bottom: 1px solid var(--color-line);
+    gap: 0.75rem;
+    padding: 0.7rem 0.9rem;
     cursor: pointer;
+    border-radius: 14px;
+    transition: background-color 120ms ease;
   }
-  .row:hover { background-color: var(--color-sunk); }
-  .row[data-selected="true"] { background-color: var(--color-sunk); }
+  .row:hover { background-color: var(--color-card-2); }
+  .row[data-selected="true"] { background-color: var(--color-card-2); }
 
   .kbd {
     font-family: var(--font-mono);
     font-size: 0.65rem;
     padding: 0.1rem 0.3rem;
-    border: 1px solid var(--color-line-strong);
-    border-bottom-width: 2px;
-    border-radius: 4px;
-    color: var(--color-fg-muted);
-    background-color: var(--color-surface);
+    border: 1px solid var(--color-line-2);
+    border-radius: 5px;
+    color: var(--color-fg-faint);
   }
 }
 

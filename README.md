@@ -91,11 +91,18 @@ It is built as an app shell, not a set of pages.
 
 Two conventions worth keeping if you edit the UI:
 
-- **Colour is a signal, not decoration.** Deep navy carries every piece of
-  structure. The crimson (`--color-signal`) means one thing: a person you are
-  overdue to contact. Spending it anywhere else costs the reader the ability to
-  spot an overdue row at a glance. Follow-up state is always carried by text as
-  well as colour, so nothing depends on colour alone.
-- **Density over decoration.** This is a tool. Type is small and tight, rows
-  are compact, chrome is quiet, and the data reads first. Resist adding
-  headline-scale typography or page-level whitespace.
+- **One accent, one alarm.** Lime (`--color-accent`) carries positive action —
+  primary buttons, the selected tab, the chart series. Red (`--color-danger`)
+  means one thing: a follow-up you are overdue on. Overdue is always spelled
+  out in text and marked with a ring as well, so it never rests on colour alone.
+- **Avatar tints are a validated set.** The four hues in `--color-c1..c4` were
+  checked against the dark surface for lightness band, chroma, colour-vision
+  separation and contrast. Initials sit on top of every avatar, which is the
+  secondary encoding that makes the set legal. Do not add a fifth hue without
+  re-running that check.
+- **Charts show real events.** The activity chart reads `contact.history`,
+  appended each time you mark someone contacted. It is one series of one hue,
+  because height carries the value and colour carries nothing.
+- **Dark, and only dark.** The palette is built and validated against the dark
+  surface. A light mode would need its own steps and its own validation pass,
+  not an inverted flip.

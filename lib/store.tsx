@@ -135,9 +135,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const logContact = useCallback((id: string, on?: string) => {
     const when = on ?? new Date().toISOString().slice(0, 10);
     setContacts((previous) =>
-      previous.map((contact) =>
-        contact.id === id ? { ...contact, lastContacted: when } : contact,
-      ),
+      previous.map((contact) => {
+        if (contact.id !== id) return contact;
+        // Append to the log so the activity chart reflects real events,
+        // skipping a duplicate if you tap twice on the same day.
+        const history = contact.history ?? [];
+        return {
+          ...contact,
+          lastContacted: when,
+          history: history.includes(when) ? history : [...history, when],
+        };
+      }),
     );
   }, []);
 

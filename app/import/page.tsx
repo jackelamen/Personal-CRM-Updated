@@ -98,10 +98,10 @@ export default function ImportPage() {
       {status.kind !== "idle" ? (
         <p
           role="status"
-          className={`rounded-md border px-3 py-2 text-[0.8rem] font-medium ${
+          className={`rounded-xl border px-3 py-2 text-[0.8rem] font-medium ${
             status.kind === "ok"
-              ? "border-line bg-sunk text-fg"
-              : "border-signal bg-signal-wash text-signal-deep"
+              ? "border-accent-dim bg-card-2 text-accent"
+              : "border-danger-dim bg-danger-wash text-danger"
           }`}
         >
           {status.message}

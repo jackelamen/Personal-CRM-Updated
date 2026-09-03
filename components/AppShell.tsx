@@ -30,11 +30,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const due = useDueCount();
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-app">
+    <div className="flex h-dvh overflow-hidden bg-bg">
       {/* Desktop rail */}
-      <aside className="hidden w-56 shrink-0 flex-col border-r border-line bg-rail lg:flex">
+      <aside className="hidden w-56 shrink-0 flex-col border-r border-line bg-card lg:flex">
         <div className="px-5 pb-2 pt-5">
-          <span className="text-[0.9rem] font-semibold tracking-tight text-rail-fg">
+          <span className="text-[0.95rem] font-semibold tracking-tight text-fg">
             Rolodex
           </span>
         </div>
@@ -46,16 +46,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 key={href}
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[0.85rem] font-medium transition-colors ${
+                className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[0.85rem] font-medium transition-colors ${
                   active
-                    ? "bg-rail-active text-rail-fg"
-                    : "text-rail-muted hover:bg-rail-active/60 hover:text-rail-fg"
+                    ? "bg-accent text-accent-ink"
+                    : "text-fg-muted hover:bg-card-2 hover:text-fg"
                 }`}
               >
                 <Icon className="h-[18px] w-[18px]" />
                 <span className="flex-1">{label}</span>
                 {href === "/" && due > 0 ? (
-                  <span className="rounded-full bg-signal px-1.5 py-0.5 text-[0.65rem] font-semibold tabular text-white">
+                  <span className="rounded-full bg-danger px-1.5 py-0.5 text-[0.65rem] font-semibold tabular text-white">
                     {due}
                   </span>
                 ) : null}
@@ -66,7 +66,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <div className="p-3">
           <Link
             href="/people/new"
-            className="flex items-center justify-center gap-1.5 rounded-md bg-rail-active px-3 py-2 text-[0.85rem] font-medium text-rail-fg transition-colors hover:bg-rail-active/70"
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-accent px-3 py-2.5 text-accent-ink text-[0.85rem] font-semibold transition-colors hover:opacity-90"
           >
             <PlusIcon className="h-4 w-4" />
             New contact
@@ -81,7 +81,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </main>
 
         {/* Mobile tab bar */}
-        <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden">
+        <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-card pb-[env(safe-area-inset-bottom)] lg:hidden">
           {NAV.map(({ href, label, Icon }) => {
             const active = isActive(href);
             return (
@@ -90,13 +90,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={`relative flex flex-1 flex-col items-center gap-1 py-2.5 text-[0.65rem] font-medium transition-colors ${
-                  active ? "text-fg" : "text-fg-muted"
+                  active ? "text-accent" : "text-fg-muted"
                 }`}
               >
                 <Icon className="h-[21px] w-[21px]" />
                 {label}
                 {href === "/" && due > 0 ? (
-                  <span className="absolute right-[22%] top-1.5 min-w-[16px] rounded-full bg-signal px-1 text-[0.6rem] font-semibold tabular leading-4 text-white">
+                  <span className="absolute right-[22%] top-1.5 min-w-[16px] rounded-full bg-danger px-1 text-[0.6rem] font-semibold tabular leading-4 text-white">
                     {due}
                   </span>
                 ) : null}

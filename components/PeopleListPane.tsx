@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import Plate from "./Plate";
+import Avatar from "./Avatar";
 import { SearchIcon, StarIcon } from "./Icons";
 import { daysUntil, formatRelativeDay, isOverdue } from "@/lib/format";
 import { useStore } from "@/lib/store";
@@ -140,7 +140,7 @@ export default function PeopleListPane() {
         ) : null}
       </div>
 
-      <div className="pane flex-1 bg-surface">
+      <div className="pane flex-1 bg-bg">
         {!ready ? null : visible.length === 0 ? (
           <p className="px-4 py-10 text-center text-[0.8rem] text-fg-muted">
             {contacts.length === 0 ? (
@@ -156,7 +156,7 @@ export default function PeopleListPane() {
             )}
           </p>
         ) : (
-          <ul>
+          <ul className="px-2 pb-2">
             {visible.map((contact) => {
               const overdue = isOverdue(contact.nextFollowUp);
               return (
@@ -166,7 +166,7 @@ export default function PeopleListPane() {
                   data-selected={params?.id === contact.id}
                   onClick={() => router.push(`/people/${contact.id}`)}
                 >
-                  <Plate contact={contact} size="sm" />
+                  <Avatar contact={contact} size="sm" ring={overdue} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[0.875rem] font-medium leading-tight text-fg">
                       {contact.name}
@@ -194,7 +194,7 @@ export default function PeopleListPane() {
                         ? `Unfavourite ${contact.name}`
                         : `Favourite ${contact.name}`
                     }
-                    className={contact.favorite ? "text-fg" : "text-line-strong hover:text-fg-muted"}
+                    className={contact.favorite ? "text-fg" : "text-line-2 hover:text-fg-muted"}
                   >
                     <StarIcon filled={contact.favorite} className="h-4 w-4" />
                   </button>

@@ -72,3 +72,33 @@ export function getInitials(contact: Pick<Contact, "name" | "firstName" | "lastN
     .slice(0, 2);
   return (fromParts || contact.name.slice(0, 2)).toUpperCase();
 }
+
+/**
+ * Deterministic avatar tint. The four slots are a validated categorical set
+ * for the dark surface (lightness band, chroma, CVD separation and contrast
+ * all pass). Initials sit on top, so identity never rests on colour alone.
+ */
+export function avatarTone(id: string): 1 | 2 | 3 | 4 {
+  let hash = 0;
+  for (let i = 0; i < id.length; i += 1) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+  return ((hash % 4) + 1) as 1 | 2 | 3 | 4;
+}
+
+/** Month key `YYYY-MM` for grouping history. */
+export function monthKey(value: string): string {
+  return value.slice(0, 7);
+}
+
+/** The last `count` months, oldest first, as {key,label} pairs. */
+export function recentMonths(count: number): { key: string; label: string }[] {
+  const out: { key: string; label: string }[] = [];
+  const now = new Date();
+  for (let i = count - 1; i >= 0; i -= 1) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    out.push({
+      key: `${d.getFullYear()}-${`${d.getMonth() + 1}`.padStart(2, "0")}`,
+      label: d.toLocaleDateString(undefined, { month: "short" }),
+    });
+  }
+  return out;
+}
