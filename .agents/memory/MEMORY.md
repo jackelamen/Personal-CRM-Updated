@@ -1,0 +1,1 @@
+- [Google contacts import](google-contacts-import.md) — direct Google Contacts sync is unavailable; use local CSV/vCard export import unless a connector is added.
