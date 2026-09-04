@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Plus_Jakarta_Sans } from "next/font/google";
-import { StoreProvider } from "@/lib/store";
-import AppShell from "@/components/AppShell";
+import { AuthProvider } from "@/lib/auth";
+import AuthGate from "@/components/AuthGate";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -46,9 +46,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${jakarta.variable} ${plexMono.variable}`}>
       <body className="antialiased">
-        <StoreProvider>
-          <AppShell>{children}</AppShell>
-        </StoreProvider>
+        <AuthProvider>
+          <AuthGate>{children}</AuthGate>
+        </AuthProvider>
       </body>
     </html>
   );

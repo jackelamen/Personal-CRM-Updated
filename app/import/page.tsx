@@ -1,8 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { LogOut } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 import { useStore } from "@/lib/store";
 import { isContactArray } from "@/lib/store";
+import { supabase } from "@/lib/supabase/client";
 import type { ImportResult } from "@/lib/types";
 
 type Status =
@@ -11,6 +14,7 @@ type Status =
   | { kind: "error"; message: string };
 
 export default function ImportPage() {
+  const { session } = useAuth();
   const { contacts, ready, importText, replaceAll, clearAll } = useStore();
   const [text, setText] = useState("");
   const [status, setStatus] = useState<Status>({ kind: "idle" });
@@ -95,6 +99,24 @@ export default function ImportPage() {
         </p>
       </div>
 
+      <section className="card flex items-center gap-3 p-3.5">
+        <div className="min-w-0 flex-1">
+          <p className="label">Signed in as</p>
+          <p className="truncate text-body font-semibold">{session?.user.email}</p>
+          <p className="mt-0.5 text-caption text-fg-muted">
+            Your contacts sync to this account across every device.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => supabase.auth.signOut()}
+          className="btn btn-quiet"
+        >
+          <LogOut size={15} strokeWidth={1.9} />
+          Sign out
+        </button>
+      </section>
+
       {status.kind !== "idle" ? (
         <p
           role="status"
@@ -147,8 +169,8 @@ export default function ImportPage() {
       <section className="space-y-3 border-t border-line pt-5">
         <h2 className="label">Backup</h2>
         <p className="text-body leading-relaxed text-fg-muted">
-          Your contacts live in this browser only. Download a backup to keep a copy or
-          move your list to another device.
+          Your contacts already sync to your account. A backup is still worth keeping
+          as an independent copy you control.
         </p>
         <input
           ref={backupInput}
@@ -185,7 +207,8 @@ export default function ImportPage() {
         {confirmingClear ? (
           <div className="flex flex-wrap items-center gap-3">
             <p className="text-body text-fg">
-              Delete all {contacts.length} contacts from this browser?
+              Delete all {contacts.length} contacts from your account? This removes
+              them everywhere they have synced.
             </p>
             <button
               type="button"

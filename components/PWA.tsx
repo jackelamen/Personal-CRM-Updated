@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
+import { useStore } from "@/lib/store";
 
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -16,6 +17,7 @@ const DISMISS_KEY = "rolodex/install-dismissed";
  * Safari users get the Share-sheet instruction instead.
  */
 export default function PWA() {
+  const { syncError, dismissSyncError } = useStore();
   const [deferred, setDeferred] = useState<InstallPromptEvent | null>(null);
   const [iosHint, setIosHint] = useState(false);
   const [offline, setOffline] = useState(false);
@@ -75,8 +77,16 @@ export default function PWA() {
           role="status"
           className="fixed inset-x-0 top-0 z-50 bg-card-2 py-1 text-center text-micro font-medium text-fg-muted"
         >
-          Offline — your contacts are on this device, so everything still works.
+          Offline — you can browse, but changes won't save until you're back online.
         </p>
+      ) : syncError ? (
+        <button
+          role="status"
+          onClick={dismissSyncError}
+          className="fixed inset-x-0 top-0 z-50 bg-danger-wash py-1 text-center text-micro font-medium text-danger"
+        >
+          Couldn't save that change — tap to dismiss.
+        </button>
       ) : null}
 
       {deferred || iosHint ? (
