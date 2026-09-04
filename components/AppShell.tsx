@@ -68,41 +68,48 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <main className="min-h-0 flex-1 overflow-hidden pb-[calc(4.25rem+env(safe-area-inset-bottom))] lg:pb-0">
+        <main className="min-h-0 flex-1 overflow-hidden pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-0">
           {children}
         </main>
 
-        {/* Mobile tab bar — floating chrome, so it gets the glass treatment. */}
-        <nav className="glass fixed inset-x-0 bottom-0 z-40 flex border-t pb-[env(safe-area-inset-bottom)] lg:hidden">
-          {NAV.map(({ href, label, Icon }) => {
-            const active = isActive(href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                aria-current={active ? "page" : undefined}
-                className={`relative flex min-h-[var(--size-tap)] flex-1 flex-col items-center justify-center gap-1 py-2 text-micro font-semibold transition-colors ${
-                  active ? "text-accent" : "text-fg-muted"
-                }`}
-              >
-                <Icon size={21} strokeWidth={active ? 2.1 : 1.75} />
-                {label}
-                {href === "/" && due > 0 ? (
-                  <span className="absolute right-[24%] top-1 min-w-[17px] rounded-full bg-danger px-1 text-micro font-semibold tabular leading-[17px] text-white">
-                    {due}
-                  </span>
-                ) : null}
-              </Link>
-            );
-          })}
-          <Link
-            href="/people/new"
-            className="flex min-h-[var(--size-tap)] flex-1 flex-col items-center justify-center gap-1 py-2 text-micro font-semibold text-fg-muted"
-          >
-            <Plus size={21} strokeWidth={1.75} />
-            New
-          </Link>
-        </nav>
+        {/*
+          Floating pill nav with a separate circular action, rather than an
+          edge-to-edge bar. Glass applies here: it is floating chrome.
+        */}
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden">
+          <div className="pointer-events-auto flex items-center gap-2">
+            <nav className="glass flex items-center gap-1 rounded-full border p-1.5">
+              {NAV.map(({ href, label, Icon }) => {
+                const active = isActive(href);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    aria-label={label}
+                    aria-current={active ? "page" : undefined}
+                    className={`relative grid h-[var(--size-tap)] w-[var(--size-tap)] place-items-center rounded-full transition-colors ${
+                      active ? "bg-accent text-accent-ink" : "text-fg-muted hover:text-fg"
+                    }`}
+                  >
+                    <Icon size={20} strokeWidth={active ? 2.2 : 1.75} />
+                    {href === "/" && due > 0 ? (
+                      <span className="absolute right-0.5 top-0.5 min-w-[17px] rounded-full bg-danger px-1 text-micro font-bold tabular leading-[17px] text-white">
+                        {due}
+                      </span>
+                    ) : null}
+                  </Link>
+                );
+              })}
+            </nav>
+            <Link
+              href="/people/new"
+              aria-label="New contact"
+              className="grid h-[52px] w-[52px] place-items-center rounded-full bg-accent text-accent-ink shadow-[0_8px_24px_rgba(63,191,168,0.35)] transition-transform active:scale-95"
+            >
+              <Plus size={22} strokeWidth={2.2} />
+            </Link>
+          </div>
+        </div>
       </div>
 
       <PWA />

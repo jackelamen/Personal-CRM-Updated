@@ -102,3 +102,31 @@ export function recentMonths(count: number): { key: string; label: string }[] {
   }
   return out;
 }
+
+/**
+ * Consecutive weeks, counting back from this one, in which at least one
+ * touchpoint was logged. A real streak from real events, not a decoration.
+ */
+export function weeklyStreak(dates: string[]): number {
+  if (dates.length === 0) return 0;
+
+  const startOfWeek = (d: Date) => {
+    const c = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    c.setDate(c.getDate() - c.getDay());
+    return c.getTime();
+  };
+
+  const weeks = new Set(dates.map((v) => startOfWeek(new Date(`${v}T12:00:00`))));
+  const WEEK = 7 * 86_400_000;
+  let cursor = startOfWeek(new Date());
+
+  // A gap in the current week does not break a streak that is still running.
+  if (!weeks.has(cursor)) cursor -= WEEK;
+
+  let streak = 0;
+  while (weeks.has(cursor)) {
+    streak += 1;
+    cursor -= WEEK;
+  }
+  return streak;
+}

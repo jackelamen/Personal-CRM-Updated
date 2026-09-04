@@ -59,7 +59,7 @@ export default function ContactDetailPage() {
         <Link
           href="/people"
           aria-label="Back to people"
-          className="btn btn-ghost px-1.5 lg:hidden"
+          className="icon-circle shrink-0 lg:hidden"
         >
           <ChevronLeft size={18} strokeWidth={1.75} />
         </Link>
@@ -74,7 +74,7 @@ export default function ContactDetailPage() {
           onClick={() => toggleFavorite(contact.id)}
           aria-pressed={Boolean(contact.favorite)}
           aria-label={contact.favorite ? "Unfavourite" : "Favourite"}
-          className={`btn btn-ghost px-1.5 ${contact.favorite ? "text-fg" : ""}`}
+          className={`icon-circle shrink-0 ${contact.favorite ? "text-accent" : ""}`}
         >
           <Star size={18} strokeWidth={1.75} fill={contact.favorite ? "currentColor" : "none"} />
         </button>

@@ -13,7 +13,7 @@ export default function NewContactPage() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="appbar glass flex items-center gap-2 px-3 py-2">
-        <Link href="/people" aria-label="Back" className="btn btn-ghost px-1.5">
+        <Link href="/people" aria-label="Back" className="icon-circle shrink-0">
           <ChevronLeft size={18} strokeWidth={1.75} />
         </Link>
         <h1 className="text-headline font-semibold">New contact</h1>

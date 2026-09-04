@@ -1,14 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { IBM_Plex_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { StoreProvider } from "@/lib/store";
 import AppShell from "@/components/AppShell";
 import "./globals.css";
 
-const plex = IBM_Plex_Sans({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   display: "swap",
-  weight: ["400", "500", "600"],
-  variable: "--font-plex",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-jakarta",
 });
 
 const plexMono = IBM_Plex_Mono({
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   // Must match the app background, or iOS paints a light bar over a dark app.
-  themeColor: "#0e1014",
+  themeColor: "#0a1720",
   width: "device-width",
   initialScale: 1,
   // An app shell should not zoom-bounce like a document.
@@ -44,7 +44,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${plex.variable} ${plexMono.variable}`}>
+    <html lang="en" className={`${jakarta.variable} ${plexMono.variable}`}>
       <body className="antialiased">
         <StoreProvider>
           <AppShell>{children}</AppShell>

@@ -87,7 +87,7 @@ export default function PeopleListPane() {
       <div className="appbar glass px-3 pb-2 pt-3">
         <div className="mb-2 flex items-center gap-2">
           <div className="relative flex-1">
-            <Search size={16} strokeWidth={1.75} />
+            <Search size={16} strokeWidth={1.75} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint" />
             <input
               ref={searchRef}
               type="search"
@@ -95,7 +95,7 @@ export default function PeopleListPane() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search people"
               aria-label="Search people"
-              className="field pl-8 pr-9"
+              className="field rounded-full pl-9 pr-9"
             />
             <span className="kbd pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 lg:block">
               /
@@ -156,7 +156,7 @@ export default function PeopleListPane() {
             )}
           </p>
         ) : (
-          <ul className="px-2 pb-2">
+          <ul className="space-y-1 px-2 pb-2">
             {visible.map((contact) => {
               const overdue = isOverdue(contact.nextFollowUp);
               return (

@@ -96,11 +96,12 @@ shell → one design language → details → glass.
    Persistent chrome (side rail on desktop, bottom tab bar on mobile) stays put
    while bounded `.pane` regions scroll inside it. Safe-area insets are honoured
    top and bottom.
-2. **One design language: neutral/flat, dark.** The skill's default verdict is
-   Material 3 via a component library; neutral/flat is its named alternative
-   when you carry your own system, which this app does. Either way the rule is
-   to pick one and enforce it — so do not introduce Material or iOS components
-   alongside these.
+2. **One design language: midnight/teal, dark.** A neutral-flat system in the
+   skill's terms, with its own palette: a deep navy ground under a faint
+   starfield, teal as the single accent, and generous rounding. Exactly one
+   gradient surface per screen — the hero — and never on a card full of copy.
+   The rule is to pick one language and enforce it, so do not introduce
+   Material or iOS components alongside these.
 3. **Bounded surfaces and one scale.** Content lives in `.card` and `.row`,
    never free-flowing prose. Every tap target clears 44px — where a control
    should stay visually small (chips, segments), the hit area is expanded with
@@ -115,12 +116,13 @@ shell → one design language → details → glass.
 
 Colour rules that sit on top of that:
 
-- **One accent, one alarm.** Lime (`--color-accent`) carries positive action.
+- **One accent, one alarm.** Teal (`--color-accent`) carries positive action.
   Red (`--color-danger`) means one thing: a follow-up you are overdue on.
   Overdue is always spelled out in text and marked with a ring as well, so it
   never rests on colour alone.
-- **Avatar tints are a validated set.** The four hues in `--color-c1..c4` were
-  checked against the dark surface for lightness band, chroma, colour-vision
+- **Avatar tints are a validated set, reserved for people.** Nothing else may
+  borrow `--color-c1..c4` — a navigation tile wearing an identity colour is a
+  category error. The four hues were re-checked against the current surface for lightness band, chroma, colour-vision
   separation and contrast. Initials sit on top of every avatar, which is the
   secondary encoding that makes the set legal. Do not add a fifth without
   re-running that check.
@@ -180,8 +182,9 @@ Two conventions worth keeping if you edit the UI:
   primary buttons, the selected tab, the chart series. Red (`--color-danger`)
   means one thing: a follow-up you are overdue on. Overdue is always spelled
   out in text and marked with a ring as well, so it never rests on colour alone.
-- **Avatar tints are a validated set.** The four hues in `--color-c1..c4` were
-  checked against the dark surface for lightness band, chroma, colour-vision
+- **Avatar tints are a validated set, reserved for people.** Nothing else may
+  borrow `--color-c1..c4` — a navigation tile wearing an identity colour is a
+  category error. The four hues were re-checked against the current surface for lightness band, chroma, colour-vision
   separation and contrast. Initials sit on top of every avatar, which is the
   secondary encoding that makes the set legal. Do not add a fifth hue without
   re-running that check.

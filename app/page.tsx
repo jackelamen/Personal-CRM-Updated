@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import Avatar from "@/components/Avatar";
 import ActivityChart from "@/components/ActivityChart";
-import StatusRing from "@/components/StatusRing";
-import { Check, Download, Plus, Users } from "lucide-react";
+import Hero from "@/components/Hero";
+import { Bell, BookOpen, Check, Clock3, Download, Plus, Users } from "lucide-react";
 import { daysUntil, formatRelativeDay, isOverdue } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import type { Contact } from "@/lib/types";
@@ -13,9 +13,9 @@ import type { Contact } from "@/lib/types";
 type Scope = "overdue" | "week" | "all";
 
 const TILES = [
-  { href: "/people/new", label: "Add", Icon: Plus, tone: "bg-c1" },
-  { href: "/people", label: "Browse", Icon: Users, tone: "bg-c2" },
-  { href: "/import", label: "Import", Icon: Download, tone: "bg-c3" },
+  { href: "/people/new", label: "Add a contact", Icon: Plus, tone: "bg-accent text-accent-ink", hint: "New" },
+  { href: "/people", label: "Browse everyone", Icon: Users, tone: "bg-card-2 text-accent", hint: "All" },
+  { href: "/import", label: "Import & backup", Icon: Download, tone: "bg-card-2 text-accent", hint: "CSV" },
 ];
 
 export default function TodayPage() {
@@ -49,13 +49,13 @@ export default function TodayPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="appbar glass flex items-center justify-between px-4 pb-2 pt-4">
-        <div>
-          <p className="text-caption text-fg-muted">{greeting}</p>
-          <h1 className="text-title font-semibold leading-tight">Your people</h1>
+      <div className="appbar glass flex items-center justify-between gap-3 px-4 pb-3 pt-4">
+        <div className="min-w-0">
+          <p className="text-caption font-medium text-fg-muted">{greeting}</p>
+          <h1 className="truncate text-title font-bold leading-tight">Your people</h1>
         </div>
-        <Link href="/people/new" aria-label="New contact" className="btn btn-primary h-9 w-9 px-0">
-          <Plus size={18} strokeWidth={1.75} />
+        <Link href="/import" aria-label="Import and data" className="icon-circle">
+          <Bell size={18} strokeWidth={1.75} />
         </Link>
       </div>
 
@@ -74,42 +74,40 @@ export default function TodayPage() {
             </div>
           ) : (
             <>
-              {/* Hero: the two numbers that decide what you do next. */}
-              <section className="card flex items-center justify-around gap-2 p-4">
-                <StatusRing
-                  value={buckets.overdue.length}
-                  total={Math.max(1, buckets.all.length)}
-                  caption="Overdue"
-                  tone="danger"
-                />
-                <div className="h-16 w-px bg-line" aria-hidden />
-                <StatusRing
-                  value={buckets.week.length}
-                  total={Math.max(1, contacts.length)}
-                  caption="Due this week"
-                />
-                <div className="h-16 w-px bg-line" aria-hidden />
-                <div className="flex flex-col items-center">
-                  <span className="tabular text-display font-semibold leading-none">
-                    {contacts.length}
-                  </span>
-                  <p className="mt-2 text-center text-caption leading-tight text-fg-muted">
-                    People
-                  </p>
-                </div>
-              </section>
+              <Hero
+                contacts={contacts}
+                dueThisWeek={buckets.week.length}
+                overdue={buckets.overdue.length}
+              />
 
-              <div className="grid grid-cols-3 gap-3">
-                {TILES.map(({ href, label, Icon, tone }) => (
+              <div className="grid grid-cols-3 gap-2.5">
+                {[
+                  { label: "Overdue", value: buckets.overdue.length, Icon: Clock3 },
+                  { label: "This week", value: buckets.week.length, Icon: BookOpen },
+                  { label: "People", value: contacts.length, Icon: Users },
+                ].map(({ label, value, Icon }) => (
+                  <div key={label} className="card flex flex-col items-center gap-1.5 p-3">
+                    <span className="icon-chip bg-card-2 text-accent">
+                      <Icon size={17} strokeWidth={1.9} />
+                    </span>
+                    <p className="text-caption text-fg-muted">{label}</p>
+                    <p className="text-headline font-bold tabular">{value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="card divide-y divide-line overflow-hidden">
+                {TILES.map(({ href, label, Icon, tone, hint }) => (
                   <Link
                     key={href}
                     href={href}
-                    className="card flex flex-col items-center gap-2 p-3 transition-colors hover:border-line-2"
+                    className="flex min-h-[var(--size-tap)] items-center gap-3 px-3 py-2.5 transition-colors hover:bg-card-2"
                   >
-                    <span className={`${tone} grid h-9 w-9 place-items-center rounded-xl text-white`}>
-                      <Icon className="h-[18px] w-[18px]" />
+                    <span className={`icon-chip ${tone}`}>
+                      <Icon size={18} strokeWidth={1.9} />
                     </span>
-                    <span className="text-caption font-medium">{label}</span>
+                    <span className="flex-1 text-body font-semibold">{label}</span>
+                    <span className="chip">{hint}</span>
                   </Link>
                 ))}
               </div>
