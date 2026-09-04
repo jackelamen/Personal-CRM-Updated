@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Avatar from "./Avatar";
-import { SearchIcon, StarIcon } from "./Icons";
+import { Search, Star } from "lucide-react";
 import { daysUntil, formatRelativeDay, isOverdue } from "@/lib/format";
 import { useStore } from "@/lib/store";
 
@@ -84,10 +84,10 @@ export default function PeopleListPane() {
 
   return (
     <>
-      <div className="toolbar px-3 pb-2 pt-3">
+      <div className="appbar glass px-3 pb-2 pt-3">
         <div className="mb-2 flex items-center gap-2">
           <div className="relative flex-1">
-            <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-faint" />
+            <Search size={16} strokeWidth={1.75} />
             <input
               ref={searchRef}
               type="search"
@@ -142,7 +142,7 @@ export default function PeopleListPane() {
 
       <div className="pane flex-1 bg-bg">
         {!ready ? null : visible.length === 0 ? (
-          <p className="px-4 py-10 text-center text-[0.8rem] text-fg-muted">
+          <p className="px-4 py-10 text-center text-callout text-fg-muted">
             {contacts.length === 0 ? (
               <>
                 No contacts yet.{" "}
@@ -168,10 +168,10 @@ export default function PeopleListPane() {
                 >
                   <Avatar contact={contact} size="sm" ring={overdue} />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[0.875rem] font-medium leading-tight text-fg">
+                    <p className="truncate text-body font-medium leading-tight text-fg">
                       {contact.name}
                     </p>
-                    <p className="truncate text-[0.78rem] leading-tight text-fg-muted">
+                    <p className="truncate text-callout leading-tight text-fg-muted">
                       {[contact.role, contact.company].filter(Boolean).join(", ") ||
                         contact.email ||
                         contact.phone ||
@@ -194,9 +194,11 @@ export default function PeopleListPane() {
                         ? `Unfavourite ${contact.name}`
                         : `Favourite ${contact.name}`
                     }
-                    className={contact.favorite ? "text-fg" : "text-line-2 hover:text-fg-muted"}
+                    className={`grid h-[var(--size-tap)] w-[var(--size-tap)] shrink-0 place-items-center rounded-full transition-colors ${
+                      contact.favorite ? "text-accent" : "text-line-2 hover:text-fg-muted"
+                    }`}
                   >
-                    <StarIcon filled={contact.favorite} className="h-4 w-4" />
+                    <Star size={16} strokeWidth={1.75} fill={contact.favorite ? "currentColor" : "none"} />
                   </button>
                 </li>
               );

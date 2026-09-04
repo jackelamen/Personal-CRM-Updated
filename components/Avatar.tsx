@@ -2,9 +2,9 @@ import { avatarTone, getInitials } from "@/lib/format";
 import type { Contact } from "@/lib/types";
 
 const SIZES = {
-  sm: "h-9 w-9 text-[0.72rem]",
-  md: "h-11 w-11 text-[0.82rem]",
-  lg: "h-14 w-14 text-[1rem]",
+  sm: "h-9 w-9 text-caption",
+  md: "h-11 w-11 text-body",
+  lg: "h-14 w-14 text-title",
 } as const;
 
 const TONE = {

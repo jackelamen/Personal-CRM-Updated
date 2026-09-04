@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Avatar from "@/components/Avatar";
-import { BackIcon, CheckIcon, ClockIcon, StarIcon } from "@/components/Icons";
+import { Check, ChevronLeft, Clock, Star } from "lucide-react";
 import { formatDate, formatRelativeDay, isOverdue, todayInputDate } from "@/lib/format";
 import { useStore } from "@/lib/store";
 
@@ -30,7 +30,7 @@ export default function ContactDetailPage() {
   if (!contact) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 text-fg-muted">
-        <p className="text-[0.85rem]">That contact no longer exists.</p>
+        <p className="text-body">That contact no longer exists.</p>
         <Link href="/people" className="btn btn-quiet">Back to people</Link>
       </div>
     );
@@ -55,18 +55,18 @@ export default function ContactDetailPage() {
 
   return (
     <>
-      <div className="toolbar flex items-center gap-2 px-3 py-2">
+      <div className="appbar glass flex items-center gap-2 px-3 py-2">
         <Link
           href="/people"
           aria-label="Back to people"
           className="btn btn-ghost px-1.5 lg:hidden"
         >
-          <BackIcon className="h-[18px] w-[18px]" />
+          <ChevronLeft size={18} strokeWidth={1.75} />
         </Link>
         <Avatar contact={contact} size="sm" ring={overdue} />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[0.9rem] font-semibold leading-tight">{contact.name}</p>
-          <p className="truncate text-[0.75rem] leading-tight text-fg-muted">
+          <p className="truncate text-headline font-semibold leading-tight">{contact.name}</p>
+          <p className="truncate text-caption leading-tight text-fg-muted">
             {[contact.role, contact.company].filter(Boolean).join(", ") || "No affiliation"}
           </p>
         </div>
@@ -76,7 +76,7 @@ export default function ContactDetailPage() {
           aria-label={contact.favorite ? "Unfavourite" : "Favourite"}
           className={`btn btn-ghost px-1.5 ${contact.favorite ? "text-fg" : ""}`}
         >
-          <StarIcon filled={contact.favorite} className="h-[18px] w-[18px]" />
+          <Star size={18} strokeWidth={1.75} fill={contact.favorite ? "currentColor" : "none"} />
         </button>
         <Link href={`/people/${contact.id}/edit`} className="btn btn-quiet">Edit</Link>
       </div>
@@ -90,8 +90,8 @@ export default function ContactDetailPage() {
             }`}
           >
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <ClockIcon className={`h-4 w-4 ${overdue ? "text-danger" : "text-fg-muted"}`} />
-              <p className="flex-1 text-[0.85rem]">
+              <Clock size={16} strokeWidth={1.75} />
+              <p className="flex-1 text-body">
                 {contact.nextFollowUp ? (
                   <>
                     <span className={overdue ? "font-semibold text-danger" : "font-medium"}>
@@ -105,7 +105,7 @@ export default function ContactDetailPage() {
               </p>
               <div className="flex flex-wrap gap-1.5">
                 <button onClick={() => logContact(contact.id)} className="btn btn-primary">
-                  <CheckIcon className="h-3.5 w-3.5" />
+                  <Check size={15} strokeWidth={1.75} />
                   Contacted
                 </button>
                 <button
@@ -171,8 +171,8 @@ export default function ContactDetailPage() {
                   key={item.label}
                   className="flex gap-3 border-b border-line px-3.5 py-2.5 last:border-b-0"
                 >
-                  <dt className="w-28 shrink-0 text-[0.78rem] text-fg-muted">{item.label}</dt>
-                  <dd className="min-w-0 flex-1 break-words text-[0.85rem]">
+                  <dt className="w-28 shrink-0 text-callout text-fg-muted">{item.label}</dt>
+                  <dd className="min-w-0 flex-1 break-words text-body">
                     {item.href ? (
                       <a href={item.href} className="text-accent underline-offset-2 hover:underline">
                         {item.value}
@@ -189,7 +189,7 @@ export default function ContactDetailPage() {
           <section className="border-t border-line pt-4">
             {confirming ? (
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[0.8rem]">Delete {contact.name}?</span>
+                <span className="text-callout">Delete {contact.name}?</span>
                 <button
                   onClick={() => {
                     deleteContact(contact.id);

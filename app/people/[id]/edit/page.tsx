@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import ContactForm from "@/components/ContactForm";
-import { BackIcon } from "@/components/Icons";
+import { ChevronLeft } from "lucide-react";
 import { useStore } from "@/lib/store";
 
 export default function EditContactPage() {
@@ -24,11 +24,11 @@ export default function EditContactPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="toolbar flex items-center gap-2 px-3 py-2">
+      <div className="appbar glass flex items-center gap-2 px-3 py-2">
         <Link href={`/people/${contact.id}`} aria-label="Back" className="btn btn-ghost px-1.5">
-          <BackIcon className="h-[18px] w-[18px]" />
+          <ChevronLeft size={18} strokeWidth={1.75} />
         </Link>
-        <h1 className="truncate text-[0.9rem] font-semibold">Edit {contact.name}</h1>
+        <h1 className="truncate text-headline font-semibold">Edit {contact.name}</h1>
       </div>
       <div className="pane flex-1">
         <div className="mx-auto max-w-2xl p-4">

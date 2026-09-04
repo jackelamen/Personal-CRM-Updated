@@ -2,23 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { InboxIcon, ImportIcon, PeopleIcon, PlusIcon } from "./Icons";
+import { Database, Inbox, Plus, Users } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { daysUntil } from "@/lib/format";
+import PWA from "./PWA";
 
 const NAV = [
-  { href: "/", label: "Today", Icon: InboxIcon },
-  { href: "/people", label: "People", Icon: PeopleIcon },
-  { href: "/import", label: "Data", Icon: ImportIcon },
+  { href: "/", label: "Today", Icon: Inbox },
+  { href: "/people", label: "People", Icon: Users },
+  { href: "/import", label: "Data", Icon: Database },
 ];
 
-function useActive() {
-  const pathname = usePathname();
-  return (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
-}
-
-/** Count of people who are due or overdue, shown as a badge on Today. */
+/** Count of people already due or overdue, badged on Today. */
 function useDueCount() {
   const { contacts, ready } = useStore();
   if (!ready) return 0;
@@ -26,19 +21,20 @@ function useDueCount() {
 }
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const isActive = useActive();
+  const pathname = usePathname();
   const due = useDueCount();
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
+    // The frame is fixed to the viewport; only panes inside it scroll.
     <div className="flex h-dvh overflow-hidden bg-bg">
-      {/* Desktop rail */}
+      {/* Desktop side rail */}
       <aside className="hidden w-56 shrink-0 flex-col border-r border-line bg-card lg:flex">
-        <div className="px-5 pb-2 pt-5">
-          <span className="text-[0.95rem] font-semibold tracking-tight text-fg">
-            Rolodex
-          </span>
+        <div className="px-5 pb-3 pt-5">
+          <span className="text-title font-semibold tracking-tight">Rolodex</span>
         </div>
-        <nav className="flex flex-1 flex-col gap-0.5 p-3">
+        <nav className="flex flex-1 flex-col gap-1 p-3">
           {NAV.map(({ href, label, Icon }) => {
             const active = isActive(href);
             return (
@@ -46,16 +42,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 key={href}
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[0.85rem] font-medium transition-colors ${
+                className={`flex min-h-[var(--size-tap)] items-center gap-3 rounded-xl px-3 text-callout font-semibold transition-colors ${
                   active
                     ? "bg-accent text-accent-ink"
                     : "text-fg-muted hover:bg-card-2 hover:text-fg"
                 }`}
               >
-                <Icon className="h-[18px] w-[18px]" />
+                <Icon size={18} strokeWidth={1.75} />
                 <span className="flex-1">{label}</span>
                 {href === "/" && due > 0 ? (
-                  <span className="rounded-full bg-danger px-1.5 py-0.5 text-[0.65rem] font-semibold tabular text-white">
+                  <span className="rounded-full bg-danger px-1.5 py-0.5 text-micro font-semibold tabular text-white">
                     {due}
                   </span>
                 ) : null}
@@ -64,24 +60,20 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
         <div className="p-3">
-          <Link
-            href="/people/new"
-            className="flex items-center justify-center gap-1.5 rounded-xl bg-accent px-3 py-2.5 text-accent-ink text-[0.85rem] font-semibold transition-colors hover:opacity-90"
-          >
-            <PlusIcon className="h-4 w-4" />
+          <Link href="/people/new" className="btn btn-primary w-full">
+            <Plus size={18} strokeWidth={2} />
             New contact
           </Link>
         </div>
       </aside>
 
-      {/* Content column */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <main className="min-h-0 flex-1 overflow-hidden pb-16 lg:pb-0">
+        <main className="min-h-0 flex-1 overflow-hidden pb-[calc(4.25rem+env(safe-area-inset-bottom))] lg:pb-0">
           {children}
         </main>
 
-        {/* Mobile tab bar */}
-        <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-card pb-[env(safe-area-inset-bottom)] lg:hidden">
+        {/* Mobile tab bar — floating chrome, so it gets the glass treatment. */}
+        <nav className="glass fixed inset-x-0 bottom-0 z-40 flex border-t pb-[env(safe-area-inset-bottom)] lg:hidden">
           {NAV.map(({ href, label, Icon }) => {
             const active = isActive(href);
             return (
@@ -89,14 +81,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 key={href}
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`relative flex flex-1 flex-col items-center gap-1 py-2.5 text-[0.65rem] font-medium transition-colors ${
+                className={`relative flex min-h-[var(--size-tap)] flex-1 flex-col items-center justify-center gap-1 py-2 text-micro font-semibold transition-colors ${
                   active ? "text-accent" : "text-fg-muted"
                 }`}
               >
-                <Icon className="h-[21px] w-[21px]" />
+                <Icon size={21} strokeWidth={active ? 2.1 : 1.75} />
                 {label}
                 {href === "/" && due > 0 ? (
-                  <span className="absolute right-[22%] top-1.5 min-w-[16px] rounded-full bg-danger px-1 text-[0.6rem] font-semibold tabular leading-4 text-white">
+                  <span className="absolute right-[24%] top-1 min-w-[17px] rounded-full bg-danger px-1 text-micro font-semibold tabular leading-[17px] text-white">
                     {due}
                   </span>
                 ) : null}
@@ -105,14 +97,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           })}
           <Link
             href="/people/new"
-            aria-label="New contact"
-            className="flex flex-1 flex-col items-center gap-1 py-2.5 text-[0.65rem] font-medium text-fg-muted"
+            className="flex min-h-[var(--size-tap)] flex-1 flex-col items-center justify-center gap-1 py-2 text-micro font-semibold text-fg-muted"
           >
-            <PlusIcon className="h-[21px] w-[21px]" />
+            <Plus size={21} strokeWidth={1.75} />
             New
           </Link>
         </nav>
       </div>
+
+      <PWA />
     </div>
   );
 }

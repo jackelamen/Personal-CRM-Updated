@@ -37,7 +37,7 @@ export default function ActivityChart({
         <h2 id={titleId} className="label">
           Touchpoints · {months} months
         </h2>
-        <p className="tabular text-[0.8rem] font-semibold">{total}</p>
+        <p className="tabular text-callout font-semibold">{total}</p>
       </div>
 
       <div className="mt-3 flex h-24 items-end gap-1.5">
@@ -54,7 +54,7 @@ export default function ActivityChart({
               {active ? (
                 <span
                   role="tooltip"
-                  className="absolute -top-1 z-10 -translate-y-full whitespace-nowrap rounded-lg border border-line bg-card-2 px-2 py-1 text-[0.7rem] shadow-lg"
+                  className="absolute -top-1 z-10 -translate-y-full whitespace-nowrap rounded-lg border border-line bg-card-2 px-2 py-1 text-micro shadow-lg"
                 >
                   <span className="tabular font-semibold">{bucket.count}</span>{" "}
                   <span className="text-fg-muted">in {bucket.label}</span>
@@ -80,7 +80,7 @@ export default function ActivityChart({
         {buckets.map((bucket) => (
           <span
             key={bucket.key}
-            className="flex-1 text-center text-[0.62rem] text-fg-faint"
+            className="flex-1 text-center text-micro text-fg-faint"
           >
             {bucket.label}
           </span>

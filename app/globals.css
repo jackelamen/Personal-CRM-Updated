@@ -1,33 +1,41 @@
 @import "tailwindcss";
 
 /*
-  Dark, high-contrast product UI. One vivid accent (lime) carries positive
-  action; one status red carries "overdue". Avatar tints are a validated
-  4-slot categorical set (see lib/format.ts) and always sit under the
-  person's initials, so identity is never colour alone.
+  DESIGN LANGUAGE: neutral / flat, dark, enforced.
+
+  The reference document's verdict is Material 3 via a component library, with
+  neutral/flat named as the alternative when you can invest in your own system.
+  This app already has a coherent custom system, so it commits to neutral/flat
+  and enforces it — the one thing the document insists on either way is that a
+  single system is picked and not mixed.
+
+  Glass appears ONLY on floating chrome (top bar, tab bar, banners), never on
+  content, per section IV.
 */
 @theme {
+  /* ---- Surfaces ---- */
   --color-bg: #0e1014;
   --color-card: #171a21;
   --color-card-2: #1e222b;
   --color-line: #262c37;
   --color-line-2: #333a47;
 
+  /* ---- Ink ---- */
   --color-fg: #f3f6fa;
   --color-fg-muted: #97a3b6;
   --color-fg-faint: #6b7688;
 
-  /* Vivid accent: primary action and the single chart series. */
+  /* ---- Accent: positive action only ---- */
   --color-accent: #c8f169;
   --color-accent-ink: #10140a;
   --color-accent-dim: #6d9c33;
 
+  /* ---- Status: overdue only ---- */
   --color-danger: #ff6b6b;
   --color-danger-dim: #7d2f36;
   --color-danger-wash: #2a1519;
 
-  /* Validated categorical set for avatar identity (dark surface #171a21):
-     lightness band, chroma, CVD and contrast all pass. */
+  /* ---- Validated categorical set for avatar identity ---- */
   --color-c1: #6d9c33;
   --color-c2: #7a69e8;
   --color-c3: #3596bc;
@@ -35,6 +43,21 @@
 
   --font-sans: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  /*
+    TYPE SCALE — one scale, app line-heights (tighter than web body copy).
+    Nothing in the UI sets an ad-hoc font size.
+  */
+  --text-display: 1.75rem;   --text-display--line-height: 2rem;
+  --text-title: 1.125rem;    --text-title--line-height: 1.5rem;
+  --text-headline: 0.9375rem;--text-headline--line-height: 1.25rem;
+  --text-body: 0.875rem;     --text-body--line-height: 1.25rem;
+  --text-callout: 0.8125rem; --text-callout--line-height: 1.125rem;
+  --text-caption: 0.75rem;   --text-caption--line-height: 1rem;
+  --text-micro: 0.6875rem;   --text-micro--line-height: 0.875rem;
+
+  /* Minimum comfortable tap target (section II.2). */
+  --size-tap: 44px;
 }
 
 @layer base {
@@ -47,7 +70,9 @@
     background-color: var(--color-bg);
     color: var(--color-fg);
     font-family: var(--font-sans);
-    font-size: 14px;
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    /* An app frame does not rubber-band like a document. */
     overscroll-behavior-y: none;
   }
 
@@ -56,11 +81,12 @@
   :focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
-    border-radius: 8px;
+    border-radius: 10px;
   }
 
   time, .tabular { font-variant-numeric: tabular-nums; }
 
+  /* Only bounded regions scroll; the frame stays locked. */
   .pane { overflow-y: auto; overscroll-behavior: contain; }
   .pane::-webkit-scrollbar { width: 10px; }
   .pane::-webkit-scrollbar-thumb {
@@ -72,29 +98,50 @@
 }
 
 @layer components {
+  /*
+    GLASS — floating chrome only. Semi-opaque base + blur/saturate, a hairline
+    to lift it off the content, and a soft shadow. Solid fallback first so
+    browsers without backdrop-filter still get a readable, opaque bar.
+  */
+  .glass {
+    /* Solid first: this is what browsers without backdrop-filter render. */
+    background-color: var(--color-bg);
+    border-color: rgb(255 255 255 / 0.08);
+    box-shadow: 0 8px 32px rgb(0 0 0 / 0.45);
+  }
+  @supports (backdrop-filter: blur(20px)) or (-webkit-backdrop-filter: blur(20px)) {
+    .glass {
+      background-color: rgb(14 16 20 / 0.72);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      backdrop-filter: blur(20px) saturate(180%);
+    }
+  }
+
+  /* Fixed top bar: title plus one or two actions. Sits under the safe area. */
+  .appbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    padding-top: env(safe-area-inset-top);
+    border-bottom: 1px solid var(--color-line);
+  }
+
   .label {
-    font-size: 0.66rem;
+    font-size: var(--text-micro);
+    line-height: var(--text-micro--line-height);
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--color-fg-faint);
   }
 
-  /* Rounded elevated tile, the core surface of the whole UI. */
+  /* Bounded surface. Content lives in these, never in free-flowing prose. */
   .card {
     background-color: var(--color-card);
     border: 1px solid var(--color-line);
-    border-radius: 18px;
+    border-radius: 16px;
   }
   .card-2 { background-color: var(--color-card-2); }
-
-  .toolbar {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    background-color: color-mix(in srgb, var(--color-bg) 86%, transparent);
-    backdrop-filter: blur(12px);
-  }
 
   .plate {
     display: grid;
@@ -103,17 +150,21 @@
     font-weight: 600;
     color: #fff;
     flex-shrink: 0;
-    letter-spacing: 0.01em;
   }
 
+  /* ---- Form controls: styled, never browser defaults ---- */
   .field {
     width: 100%;
+    min-height: var(--size-tap);
     background-color: var(--color-card);
     border: 1px solid var(--color-line);
     border-radius: 12px;
-    padding: 0.6rem 0.8rem;
-    font-size: 0.875rem;
+    padding: 0.625rem 0.75rem;
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    font-family: inherit;
     color: var(--color-fg);
+    appearance: none;
     transition: border-color 120ms ease, box-shadow 120ms ease;
   }
   .field::placeholder { color: var(--color-fg-faint); }
@@ -122,23 +173,33 @@
     border-color: var(--color-accent-dim);
     box-shadow: 0 0 0 3px rgb(200 241 105 / 0.14);
   }
+  /* The native date picker indicator is invisible on a dark field otherwise. */
+  .field::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+    cursor: pointer;
+  }
+  textarea.field { min-height: 6rem; resize: vertical; }
 
+  /* ---- Buttons: real controls, min 44px, never underlined text ---- */
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.4rem;
+    gap: 0.5rem;
+    min-height: var(--size-tap);
     border-radius: 999px;
-    padding: 0.5rem 0.95rem;
-    font-size: 0.8125rem;
+    padding: 0.5rem 1rem;
+    font-size: var(--text-callout);
+    line-height: var(--text-callout--line-height);
     font-weight: 600;
-    line-height: 1.15;
     white-space: nowrap;
     cursor: pointer;
     transition: background-color 120ms ease, border-color 120ms ease,
       color 120ms ease, transform 120ms ease;
   }
   .btn:active { transform: scale(0.97); }
+  /* Square icon-only button that still clears the tap minimum. */
+  .btn-icon { width: var(--size-tap); padding: 0; }
   .btn-primary {
     background-color: var(--color-accent);
     color: var(--color-accent-ink);
@@ -170,12 +231,30 @@
     align-items: center;
     gap: 0.25rem;
     border-radius: 999px;
-    padding: 0.2rem 0.55rem;
-    font-size: 0.6875rem;
+    padding: 0.25rem 0.625rem;
+    font-size: var(--text-micro);
+    line-height: var(--text-micro--line-height);
     font-weight: 600;
     background-color: var(--color-card-2);
     color: var(--color-fg-muted);
     white-space: nowrap;
+  }
+  /*
+    Filter chips stay visually compact, but the hit area is expanded to the
+    44px minimum with an overlay — tap target and visual size are separate
+    concerns, and bloating the pill would wreck the density.
+  */
+  button.chip {
+    position: relative;
+    min-height: 32px;
+    padding-inline: 0.75rem;
+  }
+  button.chip::after {
+    content: "";
+    position: absolute;
+    inset: 50% 0 auto 0;
+    height: var(--size-tap);
+    transform: translateY(-50%);
   }
   .chip-overdue { background-color: var(--color-danger-wash); color: var(--color-danger); }
   .chip-on { background-color: var(--color-accent); color: var(--color-accent-ink); }
@@ -188,9 +267,12 @@
     border: 1px solid var(--color-line);
   }
   .segment button {
+    position: relative;
+    min-height: 34px;
     border-radius: 999px;
-    padding: 0.3rem 0.7rem;
-    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    font-size: var(--text-caption);
+    line-height: var(--text-caption--line-height);
     font-weight: 600;
     color: var(--color-fg-muted);
     cursor: pointer;
@@ -200,14 +282,24 @@
     background-color: var(--color-accent);
     color: var(--color-accent-ink);
   }
+  /* Same treatment: compact pill, full-size hit area. */
+  .segment button::after {
+    content: "";
+    position: absolute;
+    inset: 50% 0 auto 0;
+    height: var(--size-tap);
+    transform: translateY(-50%);
+  }
 
+  /* Tappable list row, comfortably above the tap minimum. */
   .row {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.7rem 0.9rem;
+    min-height: 60px;
+    padding: 0.5rem 0.75rem;
     cursor: pointer;
-    border-radius: 14px;
+    border-radius: 12px;
     transition: background-color 120ms ease;
   }
   .row:hover { background-color: var(--color-card-2); }
@@ -215,10 +307,10 @@
 
   .kbd {
     font-family: var(--font-mono);
-    font-size: 0.65rem;
-    padding: 0.1rem 0.3rem;
+    font-size: var(--text-micro);
+    padding: 0.125rem 0.375rem;
     border: 1px solid var(--color-line-2);
-    border-radius: 5px;
+    border-radius: 6px;
     color: var(--color-fg-faint);
   }
 }

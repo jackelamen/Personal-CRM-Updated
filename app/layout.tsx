@@ -21,11 +21,21 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Rolodex",
   description: "A personal CRM: notes, labels and follow-ups that do not slip.",
-  appleWebApp: { capable: true, title: "Rolodex", statusBarStyle: "default" },
+  applicationName: "Rolodex",
+  // black-translucent lets the app paint under the status bar in standalone.
+  appleWebApp: { capable: true, title: "Rolodex", statusBarStyle: "black-translucent" },
+  icons: {
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f6f7f9",
+  // Must match the app background, or iOS paints a light bar over a dark app.
+  themeColor: "#0e1014",
   width: "device-width",
   initialScale: 1,
   // An app shell should not zoom-bounce like a document.

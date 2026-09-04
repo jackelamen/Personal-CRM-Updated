@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import Avatar from "@/components/Avatar";
 import ActivityChart from "@/components/ActivityChart";
 import StatusRing from "@/components/StatusRing";
-import { CheckIcon, ImportIcon, PlusIcon, StarIcon } from "@/components/Icons";
+import { Check, Download, Plus, Users } from "lucide-react";
 import { daysUntil, formatRelativeDay, isOverdue } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import type { Contact } from "@/lib/types";
@@ -13,9 +13,9 @@ import type { Contact } from "@/lib/types";
 type Scope = "overdue" | "week" | "all";
 
 const TILES = [
-  { href: "/people/new", label: "Add", Icon: PlusIcon, tone: "bg-c1" },
-  { href: "/people", label: "Browse", Icon: StarIcon, tone: "bg-c2" },
-  { href: "/import", label: "Import", Icon: ImportIcon, tone: "bg-c3" },
+  { href: "/people/new", label: "Add", Icon: Plus, tone: "bg-c1" },
+  { href: "/people", label: "Browse", Icon: Users, tone: "bg-c2" },
+  { href: "/import", label: "Import", Icon: Download, tone: "bg-c3" },
 ];
 
 export default function TodayPage() {
@@ -49,13 +49,13 @@ export default function TodayPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="toolbar flex items-center justify-between px-4 pb-2 pt-4">
+      <div className="appbar glass flex items-center justify-between px-4 pb-2 pt-4">
         <div>
-          <p className="text-[0.72rem] text-fg-muted">{greeting}</p>
-          <h1 className="text-[1.15rem] font-semibold leading-tight">Your people</h1>
+          <p className="text-caption text-fg-muted">{greeting}</p>
+          <h1 className="text-title font-semibold leading-tight">Your people</h1>
         </div>
         <Link href="/people/new" aria-label="New contact" className="btn btn-primary h-9 w-9 px-0">
-          <PlusIcon className="h-[18px] w-[18px]" />
+          <Plus size={18} strokeWidth={1.75} />
         </Link>
       </div>
 
@@ -64,7 +64,7 @@ export default function TodayPage() {
           {contacts.length === 0 ? (
             <div className="card p-8 text-center">
               <p className="font-semibold">No contacts yet</p>
-              <p className="mx-auto mt-1 max-w-xs text-[0.8rem] text-fg-muted">
+              <p className="mx-auto mt-1 max-w-xs text-callout text-fg-muted">
                 Import a Google Contacts export, or add someone by hand.
               </p>
               <div className="mt-4 flex justify-center gap-2">
@@ -90,10 +90,10 @@ export default function TodayPage() {
                 />
                 <div className="h-16 w-px bg-line" aria-hidden />
                 <div className="flex flex-col items-center">
-                  <span className="tabular text-[1.6rem] font-semibold leading-none">
+                  <span className="tabular text-display font-semibold leading-none">
                     {contacts.length}
                   </span>
-                  <p className="mt-2 text-center text-[0.72rem] leading-tight text-fg-muted">
+                  <p className="mt-2 text-center text-caption leading-tight text-fg-muted">
                     People
                   </p>
                 </div>
@@ -109,7 +109,7 @@ export default function TodayPage() {
                     <span className={`${tone} grid h-9 w-9 place-items-center rounded-xl text-white`}>
                       <Icon className="h-[18px] w-[18px]" />
                     </span>
-                    <span className="text-[0.72rem] font-medium">{label}</span>
+                    <span className="text-caption font-medium">{label}</span>
                   </Link>
                 ))}
               </div>
@@ -135,7 +135,7 @@ export default function TodayPage() {
                 </div>
 
                 {list.length === 0 ? (
-                  <p className="px-4 pb-6 pt-2 text-center text-[0.8rem] text-fg-muted">
+                  <p className="px-4 pb-6 pt-2 text-center text-callout text-fg-muted">
                     {scope === "overdue" ? "Nothing overdue. Nice." : "Nothing scheduled here."}
                   </p>
                 ) : (
@@ -143,31 +143,32 @@ export default function TodayPage() {
                     {list.map((contact) => {
                       const overdue = isOverdue(contact.nextFollowUp);
                       return (
-                        <li key={contact.id} className="rounded-2xl p-2 hover:bg-card-2">
-                          <div className="flex items-center gap-3">
+                        <li key={contact.id} className="rounded-2xl p-1">
+                          {/* The whole row is the target, not the name text. */}
+                          <Link
+                            href={`/people/${contact.id}`}
+                            className="row"
+                          >
                             <Avatar contact={contact} ring={overdue} />
                             <div className="min-w-0 flex-1">
-                              <Link
-                                href={`/people/${contact.id}`}
-                                className="block truncate text-[0.875rem] font-semibold leading-tight hover:underline"
-                              >
+                              <p className="truncate text-body font-semibold leading-tight">
                                 {contact.name}
-                              </Link>
-                              <p className="truncate text-[0.75rem] leading-tight text-fg-muted">
+                              </p>
+                              <p className="truncate text-caption leading-tight text-fg-muted">
                                 {contact.notes || "No notes"}
                               </p>
                             </div>
                             <span className={`chip ${overdue ? "chip-overdue" : ""}`}>
                               {formatRelativeDay(contact.nextFollowUp)}
                             </span>
-                          </div>
-                          <div className="mt-2 flex gap-2 pl-[3.5rem]">
+                          </Link>
+                          <div className="mt-1 flex gap-2 px-2 pb-1 pl-[3.75rem]">
                             <button
                               onClick={() => logContact(contact.id)}
                               aria-label={`Mark ${contact.name} contacted today`}
                               className="btn btn-primary flex-1"
                             >
-                              <CheckIcon className="h-3.5 w-3.5" />
+                              <Check size={15} strokeWidth={1.75} />
                               Contacted
                             </button>
                             <button

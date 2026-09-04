@@ -47,10 +47,10 @@ export default function StatusRing({
           />
         </svg>
         <div className="absolute inset-0 grid place-items-center">
-          <span className="tabular text-[1.6rem] font-semibold leading-none">{value}</span>
+          <span className="tabular text-display font-semibold leading-none">{value}</span>
         </div>
       </div>
-      <p className="mt-2 text-center text-[0.72rem] leading-tight text-fg-muted">{caption}</p>
+      <p className="mt-2 text-center text-caption leading-tight text-fg-muted">{caption}</p>
     </div>
   );
 }

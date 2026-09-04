@@ -81,14 +81,14 @@ export default function ImportPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="toolbar px-4 py-2.5">
-        <h1 className="text-[0.95rem] font-semibold">Import &amp; data</h1>
+      <div className="appbar glass px-4 py-2.5">
+        <h1 className="text-headline font-semibold">Import &amp; data</h1>
       </div>
       <div className="pane flex-1">
       <div className="mx-auto max-w-2xl space-y-6 p-4">
       <div>
-        <h1 className="text-[0.95rem] font-semibold">Import &amp; data</h1>
-        <p className="mt-1 text-[0.82rem] leading-relaxed text-fg-muted">
+        <h1 className="text-headline font-semibold">Import &amp; data</h1>
+        <p className="mt-1 text-body leading-relaxed text-fg-muted">
           Export your contacts from Google Contacts as a CSV or vCard, then drop the
           file in below. Anyone whose email or phone already appears in your list is
           skipped, so importing twice is safe.
@@ -98,7 +98,7 @@ export default function ImportPage() {
       {status.kind !== "idle" ? (
         <p
           role="status"
-          className={`rounded-xl border px-3 py-2 text-[0.8rem] font-medium ${
+          className={`rounded-xl border px-3 py-2 text-callout font-medium ${
             status.kind === "ok"
               ? "border-accent-dim bg-card-2 text-accent"
               : "border-danger-dim bg-danger-wash text-danger"
@@ -137,7 +137,7 @@ export default function ImportPage() {
           onChange={(event) => setText(event.target.value)}
           rows={8}
           placeholder="Paste CSV rows or a BEGIN:VCARD block…"
-          className="field resize-y font-mono text-[0.72rem] leading-relaxed"
+          className="field resize-y font-mono text-caption leading-relaxed"
         />
         <button type="button" onClick={() => runImport(text)} className="btn btn-quiet">
           Import pasted text
@@ -146,7 +146,7 @@ export default function ImportPage() {
 
       <section className="space-y-3 border-t border-line pt-5">
         <h2 className="label">Backup</h2>
-        <p className="text-[0.82rem] leading-relaxed text-fg-muted">
+        <p className="text-body leading-relaxed text-fg-muted">
           Your contacts live in this browser only. Download a backup to keep a copy or
           move your list to another device.
         </p>
@@ -184,7 +184,7 @@ export default function ImportPage() {
         <h2 className="label">Danger zone</h2>
         {confirmingClear ? (
           <div className="flex flex-wrap items-center gap-3">
-            <p className="text-[0.82rem] text-fg">
+            <p className="text-body text-fg">
               Delete all {contacts.length} contacts from this browser?
             </p>
             <button
