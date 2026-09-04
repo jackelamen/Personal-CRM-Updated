@@ -1,23 +1,55 @@
 "use client";
 
 import { useState } from "react";
-import { Mail } from "lucide-react";
+import { KeyRound, Mail } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 
+type Method = "code" | "password";
 type Stage = "email" | "code";
 
 /**
- * Email one-time-code sign-in. Deliberately not magic-link: tapping a link
- * in Mail opens the system browser, not this installed PWA, which breaks
- * the standalone experience. A code typed back into the app has no such
- * problem and works identically whether installed or not.
+ * Two ways in, same account either way — this project's auth.users table is
+ * shared with Pulse/xPM/EDGEx OS, so whichever method you use, signing in
+ * with the same email lands on the identity you already have there. Your
+ * contacts stay private to that account regardless: every table this app
+ * touches is scoped to auth.uid(), so nothing here can see Pulse/xPM data or
+ * vice versa.
+ *
+ * Code is the default because it works for anyone, with nothing to
+ * remember. It's also deliberately not magic-link: tapping a link in Mail
+ * opens the system browser, not this installed PWA, which breaks the
+ * standalone experience. Password is offered as a shortcut for an account
+ * that already has one (from signing in elsewhere in this EDGEx OS project).
  */
 export default function SignIn() {
+  const [method, setMethod] = useState<Method>("code");
   const [stage, setStage] = useState<Stage>("email");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const switchMethod = (next: Method) => {
+    setMethod(next);
+    setStage("email");
+    setError(null);
+  };
+
+  const signInWithPassword = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const trimmed = email.trim();
+    if (!trimmed || !password) return;
+    setBusy(true);
+    setError(null);
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: trimmed,
+      password,
+    });
+    setBusy(false);
+    if (signInError) setError(signInError.message);
+    // On success the auth listener in AuthProvider swaps this screen out.
+  };
 
   const sendCode = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -61,14 +93,59 @@ export default function SignIn() {
     <div className="ground flex h-dvh items-center justify-center p-5">
       <div className="card w-full max-w-sm p-6">
         <span className="icon-chip bg-card-2 text-accent">
-          <Mail size={18} strokeWidth={1.9} />
+          {method === "password" ? (
+            <KeyRound size={18} strokeWidth={1.9} />
+          ) : (
+            <Mail size={18} strokeWidth={1.9} />
+          )}
         </span>
         <h1 className="mt-3 text-title font-bold">Sign in to Rolodex</h1>
         <p className="mt-1 text-callout text-fg-muted">
-          Your contacts sync to your account, so they follow you to any device.
+          {method === "password"
+            ? "Use the same email and password you sign into Pulse or xPM with."
+            : "Your contacts sync to your account, so they follow you to any device."}
         </p>
 
-        {stage === "email" ? (
+        {method === "password" ? (
+          <form onSubmit={signInWithPassword} className="mt-5 space-y-3">
+            <label className="block">
+              <span className="label">Email</span>
+              <input
+                type="email"
+                required
+                autoFocus
+                autoComplete="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="you@example.com"
+                className="field mt-1"
+              />
+            </label>
+            <label className="block">
+              <span className="label">Password</span>
+              <input
+                type="password"
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="••••••••"
+                className="field mt-1"
+              />
+            </label>
+            {error ? <p className="text-caption text-danger">{error}</p> : null}
+            <button type="submit" disabled={busy} className="btn btn-primary w-full">
+              {busy ? "Signing in…" : "Sign in"}
+            </button>
+            <button
+              type="button"
+              onClick={() => switchMethod("code")}
+              className="btn btn-ghost w-full"
+            >
+              Email me a code instead
+            </button>
+          </form>
+        ) : stage === "email" ? (
           <form onSubmit={sendCode} className="mt-5 space-y-3">
             <label className="block">
               <span className="label">Email</span>
@@ -86,6 +163,13 @@ export default function SignIn() {
             {error ? <p className="text-caption text-danger">{error}</p> : null}
             <button type="submit" disabled={busy} className="btn btn-primary w-full">
               {busy ? "Sending…" : "Send code"}
+            </button>
+            <button
+              type="button"
+              onClick={() => switchMethod("password")}
+              className="btn btn-ghost w-full"
+            >
+              Have a password already? Use it instead
             </button>
           </form>
         ) : (
