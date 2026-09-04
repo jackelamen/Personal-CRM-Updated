@@ -30,8 +30,9 @@
   --color-accent-ink: #04211d;
   --color-accent-dim: #2b8f86;
   /* Hero gradient, used on one card per screen at most. */
-  --color-grad-from: #2c8f88;
-  --color-grad-to: #47c6a6;
+  --color-grad-from: #0d5f63;
+  --color-grad-mid: #2b9d92;
+  --color-grad-to: #5fe0b4;
 
   /* ---- Status: overdue only ---- */
   --color-danger: #ff7a7a;
@@ -77,13 +78,7 @@
     color: var(--color-fg);
     font-family: var(--font-sans);
     font-size: var(--text-body);
-    /* Faint starfield, the way the reference sits its cards on a night sky. */
-    background-image:
-      radial-gradient(1px 1px at 18% 12%, rgb(255 255 255 / 0.16), transparent 100%),
-      radial-gradient(1px 1px at 72% 26%, rgb(255 255 255 / 0.12), transparent 100%),
-      radial-gradient(1px 1px at 38% 58%, rgb(255 255 255 / 0.10), transparent 100%),
-      radial-gradient(1.5px 1.5px at 86% 72%, rgb(255 255 255 / 0.10), transparent 100%),
-      radial-gradient(1px 1px at 8% 84%, rgb(255 255 255 / 0.12), transparent 100%);
+    /* Base colour only; the atmosphere is painted by the ::before layer. */
     background-attachment: fixed;
     line-height: var(--text-body--line-height);
     /* An app frame does not rubber-band like a document. */
@@ -101,7 +96,19 @@
   time, .tabular { font-variant-numeric: tabular-nums; }
 
   /* Only bounded regions scroll; the frame stays locked. */
-  .pane { overflow-y: auto; overscroll-behavior: contain; }
+  .pane {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /*
+      Clearance for the floating pill lives inside the scroll content, so
+      content passes beneath the pill (which is what makes the glass read)
+      while the last row is still reachable above it.
+    */
+    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom));
+  }
+  @media (min-width: 1024px) {
+    .pane { padding-bottom: 0; }
+  }
   .pane::-webkit-scrollbar { width: 10px; }
   .pane::-webkit-scrollbar-thumb {
     background-color: var(--color-line-2);
@@ -112,6 +119,32 @@
 }
 
 @layer components {
+  /*
+    Atmosphere for the app frame: two broad colour washes so the ground is
+    never a flat slab, a tiled lattice, and a starfield. Applied to the shell
+    itself rather than a body pseudo-element, which sat behind body's own
+    background colour and therefore never painted.
+  */
+  .ground {
+    background-color: var(--color-bg);
+    background-attachment: fixed;
+    background-image:
+      radial-gradient(85% 50% at 8% -10%, rgb(63 191 168 / 0.50), transparent 62%),
+      radial-gradient(75% 45% at 100% 4%, rgb(86 116 214 / 0.42), transparent 64%),
+      radial-gradient(70% 45% at 50% 110%, rgb(45 160 190 / 0.32), transparent 66%),
+      radial-gradient(50% 30% at 82% 52%, rgb(120 90 210 / 0.20), transparent 70%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.11' stroke-width='1'%3E%3Cpath d='M36 4 68 36 36 68 4 36Z'/%3E%3Cpath d='M36 18 54 36 36 54 18 36Z'/%3E%3Cpath d='M0 0 72 72M72 0 0 72' stroke-opacity='0.055'/%3E%3C/g%3E%3Ccircle cx='36' cy='36' r='1.1' fill='%23ffffff' fill-opacity='0.13'/%3E%3C/svg%3E"),
+      radial-gradient(1.6px 1.6px at 16% 14%, rgb(255 255 255 / 0.5), transparent 100%),
+      radial-gradient(1.4px 1.4px at 74% 22%, rgb(255 255 255 / 0.42), transparent 100%),
+      radial-gradient(1.2px 1.2px at 42% 52%, rgb(255 255 255 / 0.32), transparent 100%),
+      radial-gradient(1.8px 1.8px at 88% 66%, rgb(255 255 255 / 0.38), transparent 100%),
+      radial-gradient(1.3px 1.3px at 10% 78%, rgb(255 255 255 / 0.34), transparent 100%),
+      radial-gradient(1.5px 1.5px at 60% 88%, rgb(255 255 255 / 0.30), transparent 100%);
+    background-repeat: no-repeat, no-repeat, no-repeat, repeat,
+      no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+    background-size: auto, auto, auto, 72px 72px, auto, auto, auto, auto, auto, auto;
+    }
+
   /*
     GLASS — floating chrome only. Semi-opaque base + blur/saturate, a hairline
     to lift it off the content, and a soft shadow. Solid fallback first so
@@ -125,8 +158,12 @@
   }
   @supports (backdrop-filter: blur(20px)) or (-webkit-backdrop-filter: blur(20px)) {
     .glass {
-      /* Derived from the background token so a palette change carries through. */
-      background-color: color-mix(in srgb, var(--color-bg) 72%, transparent);
+      /* Derived from the background token so a palette change carries through.
+         Kept genuinely translucent — at 0.72 the blur had nothing to show. */
+      background-color: color-mix(in srgb, var(--color-bg) 55%, transparent);
+      box-shadow:
+        0 8px 32px rgb(0 0 0 / 0.5),
+        inset 0 1px 0 rgb(255 255 255 / 0.14);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
       backdrop-filter: blur(20px) saturate(180%);
     }
@@ -152,18 +189,41 @@
 
   /* Bounded surface. Content lives in these, never in free-flowing prose. */
   .card {
-    background-color: color-mix(in srgb, var(--color-card) 88%, transparent);
-    border: 1px solid var(--color-line);
+    background-color: color-mix(in srgb, var(--color-card) 72%, transparent);
+    border: 1px solid rgb(255 255 255 / 0.09);
     border-radius: var(--radius-card);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+  }
+  @supports (backdrop-filter: blur(16px)) or (-webkit-backdrop-filter: blur(16px)) {
+    .card {
+      background-color: color-mix(in srgb, var(--color-card) 55%, transparent);
+      -webkit-backdrop-filter: blur(16px) saturate(140%);
+      backdrop-filter: blur(16px) saturate(140%);
+    }
   }
   .card-2 { background-color: var(--color-card-2); }
 
   /* The one gradient surface per screen: the hero. Solid colour, not glass. */
   .hero {
-    background-image: linear-gradient(135deg, var(--color-grad-from), var(--color-grad-to));
-    border: 1px solid rgb(255 255 255 / 0.14);
+    position: relative;
+    overflow: hidden;
+    /* Wide range: deep teal to bright aqua, so the sweep is actually legible. */
+    background-image:
+      radial-gradient(120% 90% at 88% -20%, rgb(255 255 255 / 0.32), transparent 58%),
+      linear-gradient(135deg, var(--color-grad-from) 0%, var(--color-grad-mid) 48%, var(--color-grad-to) 100%);
+    border: 1px solid rgb(255 255 255 / 0.16);
     border-radius: var(--radius-card);
-    color: #eafaf6;
+    color: #f2fffb;
+    box-shadow: 0 16px 40px rgb(6 60 55 / 0.45);
+  }
+  /* Soft sheen across the top edge, the way a lit surface catches light. */
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 55%;
+    background-image: linear-gradient(to bottom, rgb(255 255 255 / 0.14), transparent);
+    pointer-events: none;
   }
 
   /* Circular icon button used for header actions. */
@@ -372,6 +432,22 @@
   }
   .row:hover { background-color: var(--color-card-2); }
   .row[data-selected="true"] { background-color: var(--color-card-2); }
+
+  /*
+    Floating nav: a solid light pill, as in the reference. Deliberately NOT
+    glass — behind it the ground is uniformly dark, so a blur would reveal
+    nothing and only cost GPU.
+  */
+  .navpill {
+    background-color: #f4f8f7;
+    border: 1px solid rgb(255 255 255 / 0.6);
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.45);
+  }
+  .navpill a { color: #4a6169; }
+  .navpill a[aria-current="page"] {
+    background-color: #0d2029;
+    color: #6fe3c0;
+  }
 
   .kbd {
     font-family: var(--font-mono);

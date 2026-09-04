@@ -28,7 +28,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     // The frame is fixed to the viewport; only panes inside it scroll.
-    <div className="flex h-dvh overflow-hidden bg-bg">
+    <div className="ground flex h-dvh overflow-hidden">
       {/* Desktop side rail */}
       <aside className="hidden w-56 shrink-0 flex-col border-r border-line bg-card lg:flex">
         <div className="px-5 pb-3 pt-5">
@@ -68,7 +68,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <main className="min-h-0 flex-1 overflow-hidden pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-0">
+        <main className="min-h-0 flex-1 overflow-hidden">
           {children}
         </main>
 
@@ -78,7 +78,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         */}
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden">
           <div className="pointer-events-auto flex items-center gap-2">
-            <nav className="glass flex items-center gap-1 rounded-full border p-1.5">
+            <nav className="navpill flex items-center gap-1 rounded-full p-1.5">
               {NAV.map(({ href, label, Icon }) => {
                 const active = isActive(href);
                 return (
@@ -87,9 +87,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     href={href}
                     aria-label={label}
                     aria-current={active ? "page" : undefined}
-                    className={`relative grid h-[var(--size-tap)] w-[var(--size-tap)] place-items-center rounded-full transition-colors ${
-                      active ? "bg-accent text-accent-ink" : "text-fg-muted hover:text-fg"
-                    }`}
+                    className="relative grid h-[var(--size-tap)] w-[var(--size-tap)] place-items-center rounded-full transition-colors"
                   >
                     <Icon size={20} strokeWidth={active ? 2.2 : 1.75} />
                     {href === "/" && due > 0 ? (

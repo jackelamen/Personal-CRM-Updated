@@ -108,11 +108,16 @@ shell → one design language → details → glass.
    an `::after` overlay rather than by inflating the pill. One icon set
    (Lucide, 1.75 weight) and one type scale (`--text-display` … `--text-micro`);
    no component sets an ad-hoc font size.
-4. **Glass only on floating chrome.** `.glass` is applied to the top bars, the
-   tab bar and banners — never to cards or body content. The recipe is
-   `blur(20px) saturate(180%)` over a semi-opaque base, with a hairline and a
-   soft shadow, and a solid background declared first as the fallback for
-   browsers without `backdrop-filter`.
+4. **Glass where there is something to see through.** `.card` is translucent
+   with `blur(16px) saturate(140%)` over the patterned `.ground`, so surfaces
+   pick up the aurora beneath them; a solid background is declared first as the
+   fallback for browsers without `backdrop-filter`. Text on a card measures
+   6.9:1, well clear of the legibility limit the guidance warns about.
+
+   The floating nav is deliberately **not** glass. Behind it the ground is
+   uniformly dark, so a blur revealed nothing and only cost GPU — it is a solid
+   light pill, as in the reference. Translucency needs variation behind it to
+   mean anything; verify with an opaque control before adding it anywhere.
 
 Colour rules that sit on top of that:
 
