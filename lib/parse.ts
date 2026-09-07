@@ -72,6 +72,98 @@ export function parseVCard(text: string): ContactDraft[] {
     .filter(isUsable);
 }
 
+// -- Bracketed labels ---------------------------------------------------------
+// A plain-text format some phones export contacts as, e.g.:
+//   [Name] Jungwoo Song (지안's Dad)
+//   [Mobile] 010-9322-9690
+
+const LABEL_LINE = /^\s*\[([^\]]+)\]\s*(.*)$/;
+
+const LABEL_FIELDS: Record<string, keyof ContactDraft> = {
+  name: "name",
+  "full name": "name",
+  mobile: "phone",
+  phone: "phone",
+  tel: "phone",
+  telephone: "phone",
+  home: "phone",
+  work: "phone",
+  email: "email",
+  "e-mail": "email",
+  company: "company",
+  organization: "company",
+  org: "company",
+  title: "role",
+  role: "role",
+  job: "role",
+  birthday: "birthday",
+  bday: "birthday",
+  note: "notes",
+  notes: "notes",
+};
+
+export function isLabeledText(text: string): boolean {
+  return text
+    .split(/\r?\n/)
+    .some((line) => LABEL_LINE.test(line) && LABEL_FIELDS[line.match(LABEL_LINE)![1].trim().toLowerCase()]);
+}
+
+/** Parse one contact out of `[Label] value` lines, ignoring lines that don't match a known label. */
+export function parseLabeledText(text: string): ContactDraft | null {
+  const fields: Partial<Record<keyof ContactDraft, string>> = {};
+  const extras: string[] = [];
+  let matchedAny = false;
+
+  for (const rawLine of text.split(/\r?\n/)) {
+    const match = rawLine.match(LABEL_LINE);
+    if (!match) continue;
+
+    const label = match[1].trim().toLowerCase();
+    const value = match[2].trim();
+    if (!value) continue;
+
+    const field = LABEL_FIELDS[label];
+    if (!field) continue;
+    matchedAny = true;
+
+    if (fields[field]) {
+      // A second value for a field already set (e.g. a second phone number)
+      // has nowhere else to go, so keep it visible in notes instead of
+      // silently dropping it.
+      extras.push(`${match[1].trim()}: ${value}`);
+    } else {
+      fields[field] = value;
+    }
+  }
+
+  if (!matchedAny) return null;
+
+  // Pull a trailing "(...)" parenthetical out of the name into notes, e.g.
+  // "Jungwoo Song (지안's Dad)" -> name "Jungwoo Song", note "지안's Dad".
+  let name = fields.name;
+  if (name) {
+    const parenthetical = name.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+    if (parenthetical) {
+      name = parenthetical[1].trim();
+      extras.unshift(parenthetical[2].trim());
+    }
+  }
+
+  return {
+    firstName: "",
+    lastName: "",
+    name,
+    company: fields.company,
+    role: fields.role,
+    email: fields.email,
+    phone: fields.phone,
+    birthday: fields.birthday,
+    notes: [fields.notes, ...extras].filter(Boolean).join("; ") || undefined,
+    labels: [],
+    source: "import",
+  };
+}
+
 // -- CSV --------------------------------------------------------------------
 
 /** Split one CSV row, honouring quoted cells and doubled escape quotes. */
@@ -166,7 +258,12 @@ export function parseCsv(text: string): ContactDraft[] {
     .filter(isUsable);
 }
 
-/** Detect the format and parse. Accepts Google Contacts CSV or vCard (.vcf). */
+/** Detect the format and parse. Accepts Google Contacts CSV, vCard (.vcf), or `[Label] value` text. */
 export function parseContacts(text: string): ContactDraft[] {
-  return /BEGIN:VCARD/i.test(text) ? parseVCard(text) : parseCsv(text);
+  if (/BEGIN:VCARD/i.test(text)) return parseVCard(text);
+  if (isLabeledText(text)) {
+    const draft = parseLabeledText(text);
+    return draft && isUsable(draft) ? [draft] : [];
+  }
+  return parseCsv(text);
 }

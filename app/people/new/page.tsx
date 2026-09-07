@@ -23,6 +23,7 @@ export default function NewContactPage() {
           <ContactForm
             submitLabel="Save contact"
             cancelHref="/people"
+            allowVCardImport
             onSubmit={(draft) => router.push(`/people/${addContact(draft).id}`)}
           />
         </div>
