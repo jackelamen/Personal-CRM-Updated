@@ -228,12 +228,26 @@ export function parseCsv(text: string): ContactDraft[] {
     .map((row) => {
       const cells = splitCsvLine(row);
       // Google Contacts column names vary by export; match on any known label.
+      // Needles are tried in priority order across every header before
+      // falling back to the next, more generic needle — trying headers
+      // outer and needles inner would let a generic needle like "phone"
+      // match an earlier, unrelated header first (e.g. "Phonetic First
+      // Name" contains "phone" as a substring, and Google puts it before
+      // "Phone 1 - Value" in the header row).
       const find = (needles: string[]) => {
-        const index = headers.findIndex((header) =>
-          needles.some((needle) => header.includes(needle)),
-        );
-        return index >= 0 ? cells[index] || undefined : undefined;
+        for (const needle of needles) {
+          const index = headers.findIndex(
+            (header) => header.includes(needle) && !(needle === "phone" && header.includes("phonetic")),
+          );
+          if (index >= 0 && cells[index]) return cells[index];
+        }
+        return undefined;
       };
+
+      // A phone/email cell can hold several values joined by " ::: "
+      // (seen from phone backups with duplicate or multi-line entries);
+      // keep just the first one for a single-value field.
+      const firstToken = (value?: string) => value?.split(/\s*:::\s*/)[0]?.trim() || undefined;
 
       const firstName = find(["first name", "given name"]) ?? "";
       const lastName = find(["last name", "family name"]) ?? "";
@@ -244,8 +258,8 @@ export function parseCsv(text: string): ContactDraft[] {
         name: [firstName, lastName].filter(Boolean).join(" ") || find(["name"]) || "",
         company: find(["organization 1 - name", "organization name", "company"]),
         role: find(["organization 1 - title", "organization title", "job title"]),
-        email: find(["e-mail 1 - value", "email 1 - value", "e-mail", "email"]),
-        phone: find(["phone 1 - value", "phone"]),
+        email: firstToken(find(["e-mail 1 - value", "email 1 - value", "e-mail", "email"])),
+        phone: firstToken(find(["phone 1 - value", "phone"])),
         birthday: find(["birthday"]),
         notes: find(["notes", "note"]),
         labels: (find(["labels", "group membership"]) ?? "")
