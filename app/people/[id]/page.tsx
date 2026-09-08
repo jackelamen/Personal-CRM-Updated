@@ -11,7 +11,7 @@ import { useStore } from "@/lib/store";
 export default function ContactDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { contacts, ready, toggleFavorite, logContact, snooze, setFollowUp, setNotes, deleteContact } =
+  const { contacts, ready, toggleFavorite, logContact, setFollowUp, setNotes, deleteContact } =
     useStore();
   const [confirming, setConfirming] = useState(false);
   const [draftNotes, setDraftNotes] = useState("");
@@ -103,41 +103,40 @@ export default function ContactDetailPage() {
                   <span className="text-fg-muted">No follow-up scheduled</span>
                 )}
               </p>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <button onClick={() => logContact(contact.id)} className="btn btn-primary">
                   <Check size={15} strokeWidth={1.75} />
-                  Contacted
+                  Contacted today
                 </button>
-                <button
-                  onClick={() => snooze(contact.id, 7)}
-                  aria-label="Follow up in one week"
-                  className="btn btn-quiet"
-                >
-                  +1w
-                </button>
-                <button
-                  onClick={() => snooze(contact.id, 30)}
-                  aria-label="Follow up in one month"
-                  className="btn btn-quiet"
-                >
-                  +1m
-                </button>
-                {contact.nextFollowUp ? (
-                  <button
-                    onClick={() => setFollowUp(contact.id, undefined)}
-                    className="btn btn-ghost"
-                  >
-                    Clear
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setFollowUp(contact.id, todayInputDate())}
-                    className="btn btn-quiet"
-                  >
-                    Today
-                  </button>
-                )}
+                <label className="flex items-center gap-1.5">
+                  <span className="sr-only">Log contact on a specific date</span>
+                  <input
+                    type="date"
+                    value=""
+                    max={todayInputDate()}
+                    onChange={(e) => {
+                      if (e.target.value) logContact(contact.id, e.target.value);
+                      e.target.value = "";
+                    }}
+                    aria-label="Log contact on a different date"
+                    className="field w-[8.75rem] py-1.5 text-callout"
+                  />
+                </label>
               </div>
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-line pt-2">
+              <span className="text-callout text-fg-muted">Next follow-up</span>
+              <input
+                type="date"
+                value={contact.nextFollowUp ?? ""}
+                onChange={(e) => setFollowUp(contact.id, e.target.value || undefined)}
+                className="field w-[8.75rem] py-1.5 text-callout"
+              />
+              {contact.nextFollowUp ? (
+                <button onClick={() => setFollowUp(contact.id, undefined)} className="btn btn-ghost">
+                  Clear
+                </button>
+              ) : null}
             </div>
           </section>
 
