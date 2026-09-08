@@ -16,6 +16,7 @@ export default function ContactDetailPage() {
   const [confirming, setConfirming] = useState(false);
   const [draftNotes, setDraftNotes] = useState("");
   const [savedFlash, setSavedFlash] = useState(false);
+  const [logDate, setLogDate] = useState("");
 
   const contact = contacts.find((item) => item.id === params.id);
 
@@ -112,16 +113,24 @@ export default function ContactDetailPage() {
                   <span className="sr-only">Log contact on a specific date</span>
                   <input
                     type="date"
-                    value=""
+                    value={logDate}
                     max={todayInputDate()}
-                    onChange={(e) => {
-                      if (e.target.value) logContact(contact.id, e.target.value);
-                      e.target.value = "";
-                    }}
+                    onChange={(e) => setLogDate(e.target.value)}
                     aria-label="Log contact on a different date"
                     className="field w-[8.75rem] py-1.5 text-callout"
                   />
                 </label>
+                {logDate ? (
+                  <button
+                    onClick={() => {
+                      logContact(contact.id, logDate);
+                      setLogDate("");
+                    }}
+                    className="btn btn-quiet"
+                  >
+                    Log
+                  </button>
+                ) : null}
               </div>
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-line pt-2">
