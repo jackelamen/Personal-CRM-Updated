@@ -19,6 +19,37 @@ function isUsable(draft: ContactDraft): boolean {
   return Boolean(draft.name?.trim() || draft.email || draft.phone);
 }
 
+// Phone exports (Android/Google especially) represent "starred" contacts as a
+// group/category alongside real tags like "Family" or "Work". Treating it as
+// an ordinary label makes the app's actual favorite/star feature and this
+// imported tag mean two different, confusing things, so split it out here
+// and fold it into the real favorite flag instead.
+const STARRED_LABELS = new Set([
+  "starred",
+  "starred in android",
+  "favorite",
+  "favorites",
+  "favourite",
+  "favourites",
+]);
+
+/** True for a label that only ever meant "this contact is starred", never a real tag. */
+export function isFavoriteLabel(label: string): boolean {
+  return STARRED_LABELS.has(label.trim().toLowerCase());
+}
+
+function extractFavorite(labels: string[]): { labels: string[]; favorite: boolean } {
+  let favorite = false;
+  const kept = labels.filter((label) => {
+    if (isFavoriteLabel(label)) {
+      favorite = true;
+      return false;
+    }
+    return true;
+  });
+  return { labels: kept, favorite };
+}
+
 // -- vCard ------------------------------------------------------------------
 
 type Property = { key: string; value: string };
@@ -52,6 +83,12 @@ export function parseVCard(text: string): ContactDraft[] {
       const firstName = nameParts[1]?.trim() ?? "";
       const lastName = nameParts[0]?.trim() ?? "";
 
+      const rawLabels = (get("CATEGORIES") ?? "")
+        .split(",")
+        .map((label) => label.trim())
+        .filter(Boolean);
+      const { labels, favorite } = extractFavorite(rawLabels);
+
       return {
         firstName,
         lastName,
@@ -62,10 +99,8 @@ export function parseVCard(text: string): ContactDraft[] {
         phone: get("TEL"),
         birthday: get("BDAY"),
         notes: get("NOTE"),
-        labels: (get("CATEGORIES") ?? "")
-          .split(",")
-          .map((label) => label.trim())
-          .filter(Boolean),
+        labels,
+        favorite: favorite || undefined,
         source: "import" as const,
       };
     })
@@ -252,6 +287,12 @@ export function parseCsv(text: string): ContactDraft[] {
       const firstName = find(["first name", "given name"]) ?? "";
       const lastName = find(["last name", "family name"]) ?? "";
 
+      const rawLabels = (find(["labels", "group membership"]) ?? "")
+        .split(/[,:]/)
+        .map((label) => label.replace(/^\s*\*\s*/, "").trim())
+        .filter((label) => label && !/^my contacts$/i.test(label));
+      const { labels, favorite } = extractFavorite(rawLabels);
+
       return {
         firstName,
         lastName,
@@ -262,10 +303,8 @@ export function parseCsv(text: string): ContactDraft[] {
         phone: firstToken(find(["phone 1 - value", "phone"])),
         birthday: find(["birthday"]),
         notes: find(["notes", "note"]),
-        labels: (find(["labels", "group membership"]) ?? "")
-          .split(/[,:]/)
-          .map((label) => label.replace(/^\s*\*\s*/, "").trim())
-          .filter((label) => label && !/^my contacts$/i.test(label)),
+        labels,
+        favorite: favorite || undefined,
         source: "import" as const,
       };
     })

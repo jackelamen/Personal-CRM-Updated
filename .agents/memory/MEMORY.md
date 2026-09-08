@@ -1,1 +1,2 @@
 - [Google contacts import](google-contacts-import.md) — direct Google Contacts sync is unavailable; use local CSV/vCard export import unless a connector is added.
+- The live deployment of this project is https://personal-crm-updated.vercel.app/ — always refer to this URL (not any other domain/preview URL) when linking to or discussing the deployed app.
