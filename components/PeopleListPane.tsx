@@ -6,9 +6,30 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Avatar from "./Avatar";
 import { Search, Star } from "lucide-react";
 import { daysUntil, formatRelativeDay, isOverdue } from "@/lib/format";
+import { isFavoriteLabel } from "@/lib/parse";
 import { useStore } from "@/lib/store";
+import type { Contact } from "@/lib/types";
 
 type Sort = "name" | "recent" | "due";
+
+/** Case/whitespace-insensitive so "Family" and "family" count as the same tag. */
+function normalizeLabel(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function hasLabel(contact: Contact, wanted: string): boolean {
+  const target = normalizeLabel(wanted);
+  return contact.labels.some((l) => normalizeLabel(l) === target);
+}
+
+/**
+ * True if the contact is starred, whether that came from the app's own
+ * favorite toggle or from a "Starred"-type group carried over from an
+ * import — those never meant anything as a standalone tag.
+ */
+function isStarred(contact: Contact): boolean {
+  return Boolean(contact.favorite) || contact.labels.some(isFavoriteLabel);
+}
 
 const SORTS: { value: Sort; label: string }[] = [
   { value: "name", label: "Name" },
@@ -21,7 +42,8 @@ export default function PeopleListPane() {
   const params = useParams<{ id?: string }>();
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [label, setLabel] = useState<string | null>(null);
+  const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
+  const [starredOnly, setStarredOnly] = useState(false);
   const [sort, setSort] = useState<Sort>("name");
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -47,16 +69,38 @@ export default function PeopleListPane() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // Dedupe case-insensitively (so "Family" and "family" collapse into one chip)
+  // and drop "starred"-type labels, which the dedicated Starred filter covers.
   const labels = useMemo(() => {
-    const all = new Set<string>();
-    contacts.forEach((c) => c.labels.forEach((l) => all.add(l)));
-    return [...all].sort((a, b) => a.localeCompare(b));
+    const byKey = new Map<string, string>();
+    contacts.forEach((c) =>
+      c.labels.forEach((l) => {
+        const trimmed = l.trim();
+        if (!trimmed || isFavoriteLabel(trimmed)) return;
+        const key = normalizeLabel(trimmed);
+        if (!byKey.has(key)) byKey.set(key, trimmed);
+      }),
+    );
+    return [...byKey.values()].sort((a, b) => a.localeCompare(b));
   }, [contacts]);
+
+  const toggleLabel = (item: string) =>
+    setSelectedLabels((previous) =>
+      previous.some((l) => normalizeLabel(l) === normalizeLabel(item))
+        ? previous.filter((l) => normalizeLabel(l) !== normalizeLabel(item))
+        : [...previous, item],
+    );
+
+  const filtersActive = selectedLabels.length > 0 || starredOnly;
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
     const filtered = contacts.filter((contact) => {
-      if (label && !contact.labels.includes(label)) return false;
+      if (starredOnly && !isStarred(contact)) return false;
+      // A contact must carry every selected tag, not just one of them.
+      if (selectedLabels.length > 0 && !selectedLabels.every((l) => hasLabel(contact, l))) {
+        return false;
+      }
       if (!needle) return true;
       return [
         contact.name,
@@ -80,7 +124,7 @@ export default function PeopleListPane() {
         (a, b) => (daysUntil(a.nextFollowUp) ?? 9e4) - (daysUntil(b.nextFollowUp) ?? 9e4),
       );
     return sorted;
-  }, [contacts, query, label, sort]);
+  }, [contacts, query, selectedLabels, starredOnly, sort]);
 
   return (
     <>
@@ -119,25 +163,38 @@ export default function PeopleListPane() {
           <span className="label tabular">{visible.length}</span>
         </div>
 
-        {labels.length > 0 ? (
-          <div className="-mx-3 mt-2 flex gap-1.5 overflow-x-auto px-3 pb-1">
-            <button
-              onClick={() => setLabel(null)}
-              className={`chip ${label === null ? "chip-on" : ""}`}
-            >
-              All
-            </button>
-            {labels.map((item) => (
+        <div className="-mx-3 mt-2 flex items-center gap-1.5 overflow-x-auto px-3 pb-1">
+          <button
+            onClick={() => {
+              setSelectedLabels([]);
+              setStarredOnly(false);
+            }}
+            className={`chip ${filtersActive ? "" : "chip-on"}`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setStarredOnly((previous) => !previous)}
+            aria-pressed={starredOnly}
+            className={`chip inline-flex items-center gap-1 ${starredOnly ? "chip-on" : ""}`}
+          >
+            <Star size={11} strokeWidth={1.75} fill={starredOnly ? "currentColor" : "none"} />
+            Starred
+          </button>
+          {labels.map((item) => {
+            const on = selectedLabels.some((l) => normalizeLabel(l) === normalizeLabel(item));
+            return (
               <button
                 key={item}
-                onClick={() => setLabel(item === label ? null : item)}
-                className={`chip ${item === label ? "chip-on" : ""}`}
+                onClick={() => toggleLabel(item)}
+                aria-pressed={on}
+                className={`chip ${on ? "chip-on" : ""}`}
               >
                 {item}
               </button>
-            ))}
-          </div>
-        ) : null}
+            );
+          })}
+        </div>
       </div>
 
       <div className="pane flex-1 bg-bg">
