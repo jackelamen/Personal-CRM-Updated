@@ -301,12 +301,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             if (contact.id !== id) return contact;
             const history = contact.history ?? [];
             nextHistory = history.includes(when) ? history : [...history, when];
-            return { ...contact, lastContacted: when, history: nextHistory };
+            // Logging a touchpoint resolves whatever follow-up brought this
+            // contact into the queue. Without clearing it, "Contacted" has
+            // no visible effect: the contact never leaves the Today list.
+            return { ...contact, lastContacted: when, history: nextHistory, nextFollowUp: undefined };
           }),
         async () =>
           supabase
             .from(TABLE)
-            .update({ last_contacted: when, history: nextHistory })
+            .update({ last_contacted: when, history: nextHistory, next_follow_up: null })
             .eq("id", id),
       );
     },
