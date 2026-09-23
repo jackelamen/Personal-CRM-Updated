@@ -1,10 +1,16 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { LogOut } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Bell, BellOff, LogOut } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useStore } from "@/lib/store";
 import { isContactArray } from "@/lib/store";
+import {
+  getNotificationPermission,
+  isNotificationSupported,
+  notifyDueFollowUps,
+  requestNotificationPermission,
+} from "@/lib/notifications";
 import { supabase } from "@/lib/supabase/client";
 import type { ImportResult } from "@/lib/types";
 
@@ -19,8 +25,24 @@ export default function ImportPage() {
   const [text, setText] = useState("");
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [confirmingClear, setConfirmingClear] = useState(false);
+  const [notifSupported, setNotifSupported] = useState(false);
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
   const fileInput = useRef<HTMLInputElement>(null);
   const backupInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setNotifSupported(isNotificationSupported());
+    setNotifPermission(getNotificationPermission());
+  }, []);
+
+  const enableNotifications = async () => {
+    const result = await requestNotificationPermission();
+    setNotifPermission(result);
+    if (result === "granted") {
+      // Immediate feedback, and catches anything already due right now.
+      await notifyDueFollowUps(contacts);
+    }
+  };
 
   const describe = (result: ImportResult) => {
     if (result.added === 0 && result.skipped === 0) {
@@ -115,6 +137,41 @@ export default function ImportPage() {
           <LogOut size={15} strokeWidth={1.9} />
           Sign out
         </button>
+      </section>
+
+      <section className="card flex items-center gap-3 p-3.5">
+        <span className="icon-chip bg-card-2 text-accent">
+          {notifPermission === "granted" ? (
+            <Bell size={17} strokeWidth={1.9} />
+          ) : (
+            <BellOff size={17} strokeWidth={1.9} />
+          )}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="label">Notifications</p>
+          {!notifSupported ? (
+            <p className="mt-0.5 text-caption text-fg-muted">Not supported in this browser.</p>
+          ) : notifPermission === "granted" ? (
+            <p className="mt-0.5 text-caption text-fg-muted">
+              On — Rolodex checks for due follow-ups whenever you open the app and notifies you
+              here if something's due.
+            </p>
+          ) : notifPermission === "denied" ? (
+            <p className="mt-0.5 text-caption text-fg-muted">
+              Blocked. Allow notifications for this site in your browser settings to turn this
+              back on.
+            </p>
+          ) : (
+            <p className="mt-0.5 text-caption text-fg-muted">
+              Get notified here when someone's follow-up comes due.
+            </p>
+          )}
+        </div>
+        {notifSupported && notifPermission === "default" ? (
+          <button type="button" onClick={enableNotifications} className="btn btn-quiet">
+            Enable
+          </button>
+        ) : null}
       </section>
 
       {status.kind !== "idle" ? (

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Database, Inbox, Plus, Users } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { daysUntil } from "@/lib/format";
+import Notifications from "./Notifications";
 import PWA from "./PWA";
 
 const NAV = [
@@ -111,6 +112,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <PWA />
+      <Notifications />
     </div>
   );
 }
