@@ -207,7 +207,7 @@ export default function PeopleListPane() {
         </div>
 
         <div className="flex items-center justify-between gap-2">
-          <div className="segment" role="tablist" aria-label="Sort people">
+          <div className="segment min-w-0" role="tablist" aria-label="Sort people">
             {SORTS.map((option) => (
               <button
                 key={option.value}
@@ -219,7 +219,7 @@ export default function PeopleListPane() {
               </button>
             ))}
           </div>
-          <span className="label tabular">{visible.length}</span>
+          <span className="label shrink-0 tabular">{visible.length}</span>
         </div>
 
         {triage ? (

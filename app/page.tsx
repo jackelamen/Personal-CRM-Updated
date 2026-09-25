@@ -166,8 +166,8 @@ export default function TodayPage() {
 
               <section className="card overflow-hidden">
                 <div className="flex items-center justify-between gap-2 p-3">
-                  <h2 className="label">Focus</h2>
-                  <div className="segment" role="tablist" aria-label="Filter people">
+                  <h2 className="label shrink-0">Focus</h2>
+                  <div className="segment min-w-0" role="tablist" aria-label="Filter people">
                     {SCOPES.map((s) => (
                       <button
                         key={s.value}

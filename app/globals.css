@@ -102,9 +102,13 @@
     /*
       Clearance for the floating pill lives inside the scroll content, so
       content passes beneath the pill (which is what makes the glass read)
-      while the last row is still reachable above it.
+      while the last row is still reachable above it. Sized with headroom
+      beyond the pill's own ~3.5rem height: an OS-level text-size boost grows
+      row text (and so row height) without touching this fixed rem value or
+      the pill's, so a tight fit here reappears as the last row peeking out
+      from behind the pill on a phone with larger system text.
     */
-    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom));
+    padding-bottom: calc(7.5rem + env(safe-area-inset-bottom));
   }
   @media (min-width: 1024px) {
     .pane { padding-bottom: 0; }
@@ -398,15 +402,39 @@
   .chip-overdue { background-color: var(--color-danger-wash); color: var(--color-danger); }
   .chip-on { background-color: var(--color-accent); color: var(--color-accent-ink); }
 
+  /*
+    Scrolls rather than clips when its labels (which grow with tab count, tab
+    text, or the reader's own OS font-size setting) exceed the space a flex
+    sibling like a section header leaves it — a fixed pixel width would just
+    move where it breaks.
+  */
   .segment {
     display: inline-flex;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
     padding: 3px;
     border-radius: 999px;
     background-color: var(--color-card);
     border: 1px solid var(--color-line);
+    /*
+      A hard-edged clip and a scrollable-but-truncated list look identical
+      without this: the last option fading rather than stopping abruptly is
+      what tells a thumb there is more to swipe to.
+    */
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      black 12px,
+      black calc(100% - 12px),
+      transparent 100%
+    );
   }
+  .segment::-webkit-scrollbar { display: none; }
   .segment button {
     position: relative;
+    flex-shrink: 0;
     min-height: 34px;
     border-radius: 999px;
     padding: 0.25rem 0.75rem;
