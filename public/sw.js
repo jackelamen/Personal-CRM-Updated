@@ -3,7 +3,7 @@
 // shell. Navigations are network-first with a cached fallback, which keeps the
 // app usable on a plane without ever serving a stale build when online.
 
-const VERSION = "rolodex-v1";
+const VERSION = "rolodex-v2";
 const SHELL = ["/", "/people", "/import", "/offline"];
 
 self.addEventListener("install", (event) => {
@@ -57,4 +57,24 @@ self.addEventListener("fetch", (event) => {
       ),
     );
   }
+});
+
+// Follow-up reminders are shown via registration.showNotification (see
+// lib/notifications.ts), so a click needs to be routed back into the app
+// here rather than through a page's own click handler.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data && event.notification.data.url ? event.notification.data.url : "/";
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      const existing = clients.find((client) => "focus" in client);
+      if (existing) {
+        existing.focus();
+        if ("navigate" in existing) return existing.navigate(url);
+        return undefined;
+      }
+      return self.clients.openWindow(url);
+    }),
+  );
 });

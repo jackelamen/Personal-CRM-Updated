@@ -370,12 +370,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             if (contact.id !== id) return contact;
             const history = contact.history ?? [];
             nextHistory = history.includes(when) ? history : [...history, when];
-            return { ...contact, lastContacted: when, history: nextHistory };
+            // Logging a touchpoint resolves whatever follow-up brought this
+            // contact into the queue. Without clearing it, "Contacted" has
+            // no visible effect: the contact never leaves the Today list.
+            return { ...contact, lastContacted: when, history: nextHistory, nextFollowUp: undefined };
           }),
         async () =>
           supabase
             .from(TABLE)
-            .update({ last_contacted: when, history: nextHistory })
+            .update({ last_contacted: when, history: nextHistory, next_follow_up: null })
             .eq("id", id),
       );
     },
@@ -410,10 +413,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       };
 
       const target = contacts.find((c) => c.id === contactId);
-      // Only advance the follow-up when a rhythm says how far out to go.
+      /*
+        Logging a touchpoint always resolves the follow-up that queued this
+        person — otherwise the row never leaves Today and the button looks
+        broken. With a rhythm set, "resolved" means the next one is booked
+        from it; without one, it simply clears.
+      */
       const nextFollowUp = target?.cadenceDays
         ? addDays(target.cadenceDays, when)
-        : undefined;
+        : null;
       // A later touchpoint moves "last contacted"; back-dating one must not.
       const lastContacted =
         !target?.lastContacted || when > target.lastContacted ? when : target.lastContacted;
@@ -432,7 +440,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                   ...contact,
                   lastContacted,
                   history: nextHistory,
-                  ...(nextFollowUp ? { nextFollowUp } : {}),
+                  nextFollowUp: nextFollowUp ?? undefined,
                 }
               : contact,
           ),
@@ -449,7 +457,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             .update({
               last_contacted: lastContacted,
               history: nextHistory,
-              ...(nextFollowUp ? { next_follow_up: nextFollowUp } : {}),
+              next_follow_up: nextFollowUp,
             })
             .eq("id", contactId);
         },

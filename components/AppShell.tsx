@@ -6,6 +6,7 @@ import { Database, Inbox, Plus, Users } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { daysUntil } from "@/lib/format";
 import CommandPalette from "./CommandPalette";
+import Notifications from "./Notifications";
 import PWA from "./PWA";
 
 const NAV = [
@@ -116,6 +117,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       <CommandPalette />
       <PWA />
+      <Notifications />
     </div>
   );
 }

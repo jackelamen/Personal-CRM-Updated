@@ -76,6 +76,11 @@ imported into the account instead and the local copy is cleared.
   export twice does not create duplicates.
 - **Backup** — export and restore the whole list as JSON, independent of the
   account sync above.
+- **Notifications** — opt in from Import & data. Rolodex checks for due
+  follow-ups whenever the app is open and shows a browser notification if
+  something's waiting. There is no push server behind this: it only fires
+  while the app has been opened (foreground or a background tab, or an
+  installed PWA running), not while it is fully closed.
 
 ## Interface
 
@@ -105,12 +110,13 @@ app/
   layout.tsx           Auth provider + gate, fonts
   page.tsx             Today dashboard (hero, stats, follow-up queue)
   people/              Master-detail list, contact detail, new, edit
-  import/              Import, backup, account (sign out), danger zone
+  import/              Import, backup, account (sign out), danger zone, notifications
   globals.css          Design tokens and component classes
 components/
   AuthGate.tsx          Session check → SignIn or the app
   SignIn.tsx            Email one-time-code sign-in
   AppShell.tsx           Rail / floating nav / PWA install prompt
+  Notifications.tsx      Checks for due follow-ups and fires local reminders
   Avatar.tsx, Hero.tsx, ActivityChart.tsx, StatusRing.tsx, ContactForm.tsx
 lib/
   auth.tsx              Supabase session context
@@ -119,6 +125,7 @@ lib/
   supabase/rows.ts        DB row ⇄ Contact mapping
   parse.ts               Google Contacts CSV and vCard parsing
   format.ts               Date maths, avatar tints, activity buckets
+  notifications.ts        Notification permission + due-follow-up reminders
   seed.ts                 Sample contacts for a first-run account
   types.ts                 Contact shape
 ```
