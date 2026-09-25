@@ -1,4 +1,4 @@
-import type { Contact, ContactDraft, ContactSource } from "../types";
+import type { Channel, Contact, ContactDraft, ContactSource, Interaction } from "../types";
 
 /** Shape of a row in public.rolodex_contacts, as returned by supabase-js. */
 export type ContactRow = {
@@ -19,7 +19,40 @@ export type ContactRow = {
   history: string[];
   source: string;
   favorite: boolean;
+  cadence_days: number | null;
+  next_step: string | null;
 };
+
+/** Shape of a row in public.rolodex_interactions. */
+export type InteractionRow = {
+  id: string;
+  user_id: string;
+  contact_id: string;
+  happened_on: string;
+  channel: string;
+  note: string | null;
+};
+
+export function rowToInteraction(row: InteractionRow): Interaction {
+  return {
+    id: row.id,
+    contactId: row.contact_id,
+    happenedOn: row.happened_on,
+    channel: (row.channel as Channel) ?? "note",
+    note: row.note ?? undefined,
+  };
+}
+
+export function interactionToRow(interaction: Interaction, userId: string) {
+  return {
+    id: interaction.id,
+    user_id: userId,
+    contact_id: interaction.contactId,
+    happened_on: interaction.happenedOn,
+    channel: interaction.channel,
+    note: interaction.note ?? null,
+  };
+}
 
 export function rowToContact(row: ContactRow): Contact {
   return {
@@ -39,6 +72,8 @@ export function rowToContact(row: ContactRow): Contact {
     history: row.history ?? undefined,
     source: (row.source as ContactSource) ?? "manual",
     favorite: row.favorite,
+    cadenceDays: row.cadence_days ?? undefined,
+    nextStep: row.next_step ?? undefined,
   };
 }
 
@@ -65,5 +100,7 @@ export function contactToRow(
     history: contact.history ?? [],
     source: contact.source ?? "manual",
     favorite: contact.favorite ?? false,
+    cadence_days: contact.cadenceDays ?? null,
+    next_step: contact.nextStep ?? null,
   };
 }

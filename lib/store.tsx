@@ -10,17 +10,28 @@ import React, {
   useState,
 } from "react";
 import { useAuth } from "./auth";
+import { addDays, todayInputDate } from "./format";
 import { identityKey, parseContacts } from "./parse";
 import { seedContacts } from "./seed";
 import { supabase } from "./supabase/client";
-import { contactToRow, rowToContact, type ContactRow } from "./supabase/rows";
-import type { Contact, ContactDraft, ImportResult } from "./types";
+import {
+  contactToRow,
+  interactionToRow,
+  rowToContact,
+  rowToInteraction,
+  type ContactRow,
+  type InteractionRow,
+} from "./supabase/rows";
+import type { Channel, Contact, ContactDraft, ImportResult, Interaction } from "./types";
 
 const LEGACY_STORAGE_KEY = "personal-crm/contacts/v1";
 const TABLE = "rolodex_contacts";
+const INTERACTIONS_TABLE = "rolodex_interactions";
 
 type Store = {
   contacts: Contact[];
+  /** Every touchpoint for the signed-in account, newest first. */
+  interactions: Interaction[];
   /** False until the first fetch from Supabase has resolved. */
   ready: boolean;
   /** Set when a write fails (offline, network error). Cleared on the next successful write. */
@@ -31,10 +42,28 @@ type Store = {
   deleteContact: (id: string) => void;
   toggleFavorite: (id: string) => void;
   logContact: (id: string, on?: string) => void;
+  /**
+   * Record a touchpoint with what actually happened, and let the contact's
+   * cadence schedule the next one.
+   */
+  logInteraction: (input: {
+    contactId: string;
+    happenedOn?: string;
+    channel?: Channel;
+    note?: string;
+  }) => void;
+  deleteInteraction: (id: string) => void;
   /** Push a follow-up out by N days from today. */
   snooze: (id: string, days: number) => void;
   setFollowUp: (id: string, date?: string) => void;
   setNotes: (id: string, notes: string) => void;
+  setCadence: (id: string, days?: number) => void;
+  setNextStep: (id: string, nextStep: string) => void;
+  /** Apply one change to many contacts at once, for triaging an import. */
+  bulkUpdate: (
+    ids: string[],
+    change: { cadenceDays?: number; addLabel?: string; nextFollowUp?: string },
+  ) => void;
   importText: (text: string) => ImportResult;
   replaceAll: (contacts: Contact[]) => void;
   clearAll: () => void;
@@ -99,6 +128,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const userId = session?.user.id ?? null;
 
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [interactions, setInteractions] = useState<Interaction[]>([]);
   const [ready, setReady] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   // Guards against a slow fetch from an old user overwriting a new one's
@@ -112,6 +142,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!userId) {
       setContacts([]);
+      setInteractions([]);
       setReady(false);
       return;
     }
@@ -161,6 +192,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
 
       setContacts(rows.map(rowToContact));
+
+      const { data: touchpoints } = await supabase
+        .from(INTERACTIONS_TABLE)
+        .select("*")
+        .order("happened_on", { ascending: false });
+      if (cancelled || token !== loadToken.current) return;
+      setInteractions(((touchpoints ?? []) as InteractionRow[]).map(rowToInteraction));
+
       setReady(true);
     })();
 
@@ -190,6 +229,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             return exists
               ? previous.map((c) => (c.id === incoming.id ? incoming : c))
               : [incoming, ...previous];
+          });
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: INTERACTIONS_TABLE,
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          setInteractions((previous) => {
+            if (payload.eventType === "DELETE") {
+              const oldId = (payload.old as { id?: string }).id;
+              return previous.filter((i) => i.id !== oldId);
+            }
+            const incoming = rowToInteraction(payload.new as InteractionRow);
+            const rest = previous.filter((i) => i.id !== incoming.id);
+            return [incoming, ...rest].sort((a, b) =>
+              b.happenedOn.localeCompare(a.happenedOn),
+            );
           });
         },
       )
@@ -249,7 +310,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         (previous) =>
           previous.map((contact) => {
             if (contact.id !== id) return contact;
-            updated = materialize(draft, contact);
+            /*
+              The edit form only knows about the fields it renders, so a bare
+              draft would blank everything else on the row — the touchpoint
+              history, the cadence, the next step. Layering the draft over the
+              existing contact keeps those, while still letting the form clear
+              a field it does manage (an emptied input arrives as undefined,
+              which wins over the old value).
+            */
+            updated = materialize({ ...contact, ...draft }, contact);
             return updated;
           }),
         async () =>
@@ -311,6 +380,199 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       );
     },
     [userId, commit],
+  );
+
+  /**
+   * The real "I talked to them" path: records what happened, keeps the
+   * contact's own last-contacted/history fields in step, and — when a cadence
+   * is set — books the next follow-up so the rhythm continues on its own.
+   */
+  const logInteraction = useCallback(
+    ({
+      contactId,
+      happenedOn,
+      channel = "note",
+      note,
+    }: {
+      contactId: string;
+      happenedOn?: string;
+      channel?: Channel;
+      note?: string;
+    }) => {
+      if (!userId) return;
+      const when = happenedOn ?? todayInputDate();
+      const entry: Interaction = {
+        id: createId(),
+        contactId,
+        happenedOn: when,
+        channel,
+        note: note?.trim() || undefined,
+      };
+
+      const target = contacts.find((c) => c.id === contactId);
+      // Only advance the follow-up when a rhythm says how far out to go.
+      const nextFollowUp = target?.cadenceDays
+        ? addDays(target.cadenceDays, when)
+        : undefined;
+      // A later touchpoint moves "last contacted"; back-dating one must not.
+      const lastContacted =
+        !target?.lastContacted || when > target.lastContacted ? when : target.lastContacted;
+      const history = target?.history ?? [];
+      const nextHistory = history.includes(when) ? history : [...history, when].sort();
+
+      setInteractions((previous) =>
+        [entry, ...previous].sort((a, b) => b.happenedOn.localeCompare(a.happenedOn)),
+      );
+
+      void commit(
+        (previous) =>
+          previous.map((contact) =>
+            contact.id === contactId
+              ? {
+                  ...contact,
+                  lastContacted,
+                  history: nextHistory,
+                  ...(nextFollowUp ? { nextFollowUp } : {}),
+                }
+              : contact,
+          ),
+        async () => {
+          const inserted = await supabase
+            .from(INTERACTIONS_TABLE)
+            .insert(interactionToRow(entry, userId));
+          if (inserted.error) {
+            setInteractions((previous) => previous.filter((i) => i.id !== entry.id));
+            return inserted;
+          }
+          return supabase
+            .from(TABLE)
+            .update({
+              last_contacted: lastContacted,
+              history: nextHistory,
+              ...(nextFollowUp ? { next_follow_up: nextFollowUp } : {}),
+            })
+            .eq("id", contactId);
+        },
+      );
+    },
+    [userId, commit, contacts],
+  );
+
+  const deleteInteraction = useCallback(
+    (id: string) => {
+      if (!userId) return;
+      let removed: Interaction | undefined;
+      setInteractions((previous) => {
+        removed = previous.find((i) => i.id === id);
+        return previous.filter((i) => i.id !== id);
+      });
+      void (async () => {
+        const { error } = await supabase.from(INTERACTIONS_TABLE).delete().eq("id", id);
+        if (error) {
+          if (removed) {
+            const restored = removed;
+            setInteractions((previous) =>
+              [restored, ...previous].sort((a, b) =>
+                b.happenedOn.localeCompare(a.happenedOn),
+              ),
+            );
+          }
+          setSyncError(error.message);
+        } else {
+          setSyncError(null);
+        }
+      })();
+    },
+    [userId],
+  );
+
+  const setCadence = useCallback(
+    (id: string, days?: number) => {
+      if (!userId) return;
+      void commit(
+        (previous) =>
+          previous.map((contact) =>
+            contact.id === id ? { ...contact, cadenceDays: days } : contact,
+          ),
+        async () =>
+          supabase.from(TABLE).update({ cadence_days: days ?? null }).eq("id", id),
+      );
+    },
+    [userId, commit],
+  );
+
+  const setNextStep = useCallback(
+    (id: string, nextStep: string) => {
+      if (!userId) return;
+      const trimmed = nextStep.trim() || undefined;
+      void commit(
+        (previous) =>
+          previous.map((contact) =>
+            contact.id === id ? { ...contact, nextStep: trimmed } : contact,
+          ),
+        async () =>
+          supabase.from(TABLE).update({ next_step: trimmed ?? null }).eq("id", id),
+      );
+    },
+    [userId, commit],
+  );
+
+  /**
+   * Triaging a freshly imported address book one contact at a time does not
+   * scale, so cadence, labels and follow-ups can be applied to a selection.
+   */
+  const bulkUpdate = useCallback(
+    (
+      ids: string[],
+      change: { cadenceDays?: number; addLabel?: string; nextFollowUp?: string },
+    ) => {
+      if (!userId || ids.length === 0) return;
+      const targets = new Set(ids);
+      const label = change.addLabel?.trim();
+
+      void commit(
+        (previous) =>
+          previous.map((contact) => {
+            if (!targets.has(contact.id)) return contact;
+            return {
+              ...contact,
+              ...(change.cadenceDays !== undefined
+                ? { cadenceDays: change.cadenceDays }
+                : {}),
+              ...(change.nextFollowUp ? { nextFollowUp: change.nextFollowUp } : {}),
+              ...(label && !contact.labels.includes(label)
+                ? { labels: [...contact.labels, label] }
+                : {}),
+            };
+          }),
+        async () => {
+          // Cadence and follow-up are the same value for every row, so they go
+          // in one statement. Labels differ per row and need individual writes.
+          const shared: Record<string, unknown> = {};
+          if (change.cadenceDays !== undefined) shared.cadence_days = change.cadenceDays;
+          if (change.nextFollowUp) shared.next_follow_up = change.nextFollowUp;
+
+          if (Object.keys(shared).length > 0) {
+            const result = await supabase.from(TABLE).update(shared).in("id", ids);
+            if (result.error) return result;
+          }
+
+          if (label) {
+            for (const id of ids) {
+              const contact = contacts.find((c) => c.id === id);
+              if (!contact || contact.labels.includes(label)) continue;
+              const result = await supabase
+                .from(TABLE)
+                .update({ labels: [...contact.labels, label] })
+                .eq("id", id);
+              if (result.error) return result;
+            }
+          }
+          return { error: null };
+        },
+      );
+    },
+    [userId, commit, contacts],
   );
 
   const snooze = useCallback(
@@ -433,6 +695,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<Store>(
     () => ({
       contacts,
+      interactions,
       ready,
       syncError,
       dismissSyncError,
@@ -441,15 +704,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       deleteContact,
       toggleFavorite,
       logContact,
+      logInteraction,
+      deleteInteraction,
       snooze,
       setFollowUp,
       setNotes,
+      setCadence,
+      setNextStep,
+      bulkUpdate,
       importText,
       replaceAll,
       clearAll,
     }),
     [
       contacts,
+      interactions,
       ready,
       syncError,
       dismissSyncError,
@@ -458,9 +727,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       deleteContact,
       toggleFavorite,
       logContact,
+      logInteraction,
+      deleteInteraction,
       snooze,
       setFollowUp,
       setNotes,
+      setCadence,
+      setNextStep,
+      bulkUpdate,
       importText,
       replaceAll,
       clearAll,

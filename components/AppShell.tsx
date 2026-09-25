@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Database, Inbox, Plus, Users } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { daysUntil } from "@/lib/format";
+import CommandPalette from "./CommandPalette";
 import PWA from "./PWA";
 
 const NAV = [
@@ -59,11 +60,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="p-3">
+        <div className="space-y-2 p-3">
           <Link href="/people/new" className="btn btn-primary w-full">
             <Plus size={18} strokeWidth={2} />
             New contact
           </Link>
+          <p className="text-center text-micro text-fg-faint">
+            <span className="kbd">⌘K</span> to jump anywhere
+          </p>
         </div>
       </aside>
 
@@ -110,6 +114,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
+      <CommandPalette />
       <PWA />
     </div>
   );

@@ -3,20 +3,25 @@
 import Link from "next/link";
 import { Flame, MoveRight } from "lucide-react";
 import type { Contact } from "@/lib/types";
-import { weeklyStreak } from "@/lib/format";
+import { toInputDate, weeklyStreak } from "@/lib/format";
 
 /**
- * The one gradient surface on the screen: what this week asks of you, how far
- * through it you are, and the streak that makes keeping it up feel worth it.
+ * The one gradient surface on the screen. It states the single truest thing
+ * about the state of the list — which is not always flattering: a list where
+ * nobody is scheduled is not "up to date", it is unmanaged, and saying so is
+ * the whole point of the screen.
  */
 export default function Hero({
   contacts,
   dueThisWeek,
   overdue,
+  unplanned,
 }: {
   contacts: Contact[];
   dueThisWeek: number;
   overdue: number;
+  /** People with no follow-up and no rhythm — nothing will ever surface them. */
+  unplanned: number;
 }) {
   const history = contacts.flatMap((c) => c.history ?? []);
   const streak = weeklyStreak(history);
@@ -25,20 +30,31 @@ export default function Hero({
   const weekStart = (() => {
     const d = new Date();
     d.setDate(d.getDate() - d.getDay());
-    return d.toISOString().slice(0, 10);
+    return toInputDate(d);
   })();
   const doneThisWeek = history.filter((d) => d >= weekStart).length;
   const target = doneThisWeek + dueThisWeek;
   const share = target === 0 ? 1 : doneThisWeek / target;
 
+  const headline =
+    overdue > 0
+      ? `${overdue} ${overdue === 1 ? "person is" : "people are"} overdue`
+      : dueThisWeek > 0
+        ? `${dueThisWeek} ${dueThisWeek === 1 ? "person" : "people"} to reach out to`
+        : unplanned > 0
+          ? `${unplanned} ${unplanned === 1 ? "person has" : "people have"} no plan`
+          : "Everyone is up to date";
+
+  const sub =
+    overdue === 0 && dueThisWeek === 0 && unplanned > 0
+      ? "Nothing is scheduled for them, so nothing will remind you."
+      : null;
+
   return (
     <section className="hero p-4">
       <p className="text-caption font-semibold text-white/75">This week</p>
-      <h2 className="mt-0.5 text-title font-bold">
-        {dueThisWeek === 0
-          ? "Everyone is up to date"
-          : `${dueThisWeek} ${dueThisWeek === 1 ? "person" : "people"} to reach out to`}
-      </h2>
+      <h2 className="mt-0.5 text-title font-bold">{headline}</h2>
+      {sub ? <p className="mt-1 text-callout text-white/80">{sub}</p> : null}
 
       <div className="track mt-4" role="img" aria-label={`${doneThisWeek} of ${target} done this week`}>
         <span style={{ width: `${Math.round(share * 100)}%` }} />
@@ -61,10 +77,14 @@ export default function Hero({
       </div>
 
       <Link
-        href="/people?filter=due"
+        href={overdue === 0 && dueThisWeek === 0 && unplanned > 0 ? "/people?triage=1" : "/people"}
         className="btn mt-4 w-full border border-white/25 bg-white/15 text-white backdrop-blur-sm hover:bg-white/25"
       >
-        {overdue > 0 ? `Clear ${overdue} overdue` : "Review follow-ups"}
+        {overdue > 0
+          ? `Clear ${overdue} overdue`
+          : unplanned > 0 && dueThisWeek === 0
+            ? "Set a rhythm for them"
+            : "Review follow-ups"}
         <MoveRight size={16} strokeWidth={2.2} />
       </Link>
     </section>

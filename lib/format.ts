@@ -19,6 +19,51 @@ export function todayInputDate(): string {
   return `${now.getFullYear()}-${month}-${day}`;
 }
 
+/** `YYYY-MM-DD` for a Date, in local time (never UTC-shifted). */
+export function toInputDate(date: Date): string {
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+/** `YYYY-MM-DD` this many days after `from` (defaults to today). */
+export function addDays(days: number, from?: string): string {
+  const base = from ? parseDay(from) : new Date();
+  base.setDate(base.getDate() + days);
+  return toInputDate(base);
+}
+
+/** Whole days since `value`. Null when never. Larger means staler. */
+export function daysSince(value?: string): number | null {
+  const until = daysUntil(value);
+  return until === null ? null : -until;
+}
+
+/**
+ * Days until the next occurrence of a birthday, ignoring its year. Null when
+ * there is no usable date. Handles Feb 29 and the year boundary.
+ */
+export function daysUntilBirthday(birthday?: string): number | null {
+  if (!birthday) return null;
+  // Google exports year-less birthdays as `--MM-DD`; accept both shapes.
+  const match = birthday.match(/(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  const month = Number(match[1]);
+  const day = Number(match[2]);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+
+  const today = new Date();
+  const todayStart = startOfDay(today);
+  for (let yearOffset = 0; yearOffset <= 1; yearOffset += 1) {
+    const candidate = new Date(today.getFullYear() + yearOffset, month - 1, day);
+    // A Feb 29 in a common year rolls to Mar 1, which is the pragmatic answer.
+    if (startOfDay(candidate) >= todayStart) {
+      return Math.round((startOfDay(candidate) - todayStart) / MS_PER_DAY);
+    }
+  }
+  return null;
+}
+
 /** Whole days from today until `value`. Negative means overdue. */
 export function daysUntil(value?: string): number | null {
   if (!value) return null;
